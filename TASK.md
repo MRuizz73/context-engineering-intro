@@ -36,6 +36,13 @@
   (CODIGO_REGISTRO/CODIGO_CHOFER); Dockerfile + docker-compose + guía
   DESPLIEGUE.md. 42 tests pasando.
 
+- [x] **2026-07-13** — Soporte MySQL/MariaDB para el servidor de la empresa
+  (DATABASE_URL mysql+pymysql, pool_pre_ping, migraciones solo-SQLite),
+  verificado contra MariaDB real (seed completo + login + renovación).
+  passenger_wsgi.py para hostings cPanel/Passenger y comando de cron
+  `python -m gestion_flota.enviar_avisos`. Guía de despliegue ampliada
+  con la sección "Servidor propio PHP + MySQL".
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.

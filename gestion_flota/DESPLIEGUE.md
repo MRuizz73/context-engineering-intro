@@ -3,6 +3,86 @@
 Cómo poner la app en marcha para que los choferes y responsables de
 transporte accedan desde cualquier lugar (móvil u ordenador).
 
+## En el servidor propio de la empresa (PHP + MySQL)
+
+La app convive sin problema con el PHP existente y **usa el MySQL de la
+empresa**: basta configurar
+`DATABASE_URL=mysql+pymysql://usuario:clave@localhost/gestion_flota` en el
+`.env`. En el primer arranque crea las tablas e importa los datos solos.
+
+### A) Servidor con SSH (VPS/dedicado con LAMP)
+
+```bash
+# 1. Base de datos (una sola vez)
+mysql -u root -p -e "
+  CREATE DATABASE gestion_flota CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+  CREATE USER 'flota'@'localhost' IDENTIFIED BY 'UNA-CLAVE-SEGURA';
+  GRANT ALL PRIVILEGES ON gestion_flota.* TO 'flota'@'localhost';"
+
+# 2. Código y dependencias (Python 3.10+)
+cd /opt && git clone https://github.com/MRuizz73/context-engineering-intro.git flota
+cd flota && python3 -m venv venv_linux && ./venv_linux/bin/pip install -r requirements.txt
+
+# 3. Configuración
+cp .env.example .env && nano .env
+#   DATABASE_URL=mysql+pymysql://flota:UNA-CLAVE-SEGURA@localhost/gestion_flota
+#   SMTP_* (correo de la empresa) y CODIGO_REGISTRO
+
+# 4. Servicio (arranca solo al reiniciar el servidor)
+sudo tee /etc/systemd/system/flota.service > /dev/null <<'UNIT'
+[Unit]
+Description=Gestion de Flota
+After=network.target mysql.service
+[Service]
+WorkingDirectory=/opt/flota
+ExecStart=/opt/flota/venv_linux/bin/uvicorn gestion_flota.main:app --host 127.0.0.1 --port 8000
+Restart=always
+[Install]
+WantedBy=multi-user.target
+UNIT
+sudo systemctl enable --now flota
+```
+
+Y en el Apache que ya sirve el PHP, un subdominio con proxy
+(`a2enmod proxy proxy_http` una vez):
+
+```apache
+<VirtualHost *:80>
+    ServerName flota.tuempresa.com
+    ProxyPreserveHost On
+    ProxyPass / http://127.0.0.1:8000/
+    ProxyPassReverse / http://127.0.0.1:8000/
+</VirtualHost>
+```
+
+HTTPS con `certbot --apache -d flota.tuempresa.com`. El PHP existente sigue
+funcionando igual: solo se añade un subdominio.
+
+### B) Hosting compartido cPanel/Plesk (sin SSH root)
+
+Requiere que el panel tenga **"Setup Python App"** (Passenger); la mayoría
+de los cPanel modernos lo traen:
+
+1. **MySQL Databases** en cPanel: crear la base `gestion_flota`, un usuario
+   y darle todos los permisos.
+2. **Setup Python App**: crear una aplicación Python 3.10+, apuntando al
+   directorio del proyecto y con *startup file* `passenger_wsgi.py`
+   (incluido en el repo).
+3. Subir el código (Git Version Control o zip) y en la terminal del panel:
+   `pip install -r requirements.txt`.
+4. Crear el `.env` con `DATABASE_URL=mysql+pymysql://...` (datos del paso 1),
+   SMTP y `CODIGO_REGISTRO`.
+5. Reiniciar la app desde el panel: al primer arranque se crean tablas,
+   datos y cuentas.
+6. **Cron Jobs** (los emails automáticos en modo Passenger van por cron):
+   una tarea diaria con
+   `/ruta/al/venv/bin/python -m gestion_flota.enviar_avisos`
+   ejecutada desde el directorio del proyecto.
+
+Si el hosting NO tiene soporte Python, la app no puede correr ahí: las
+opciones son un VPS aparte (puede seguir usando el MySQL de la empresa si
+está accesible) o el resto de alternativas de abajo.
+
 ## Opción recomendada: un VPS con Docker (~5 €/mes)
 
 Un VPS es un pequeño servidor alquilado (Hetzner, DigitalOcean, OVH,

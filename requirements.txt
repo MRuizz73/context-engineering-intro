@@ -4,3 +4,8 @@ sqlmodel
 python-dotenv
 pytest
 httpx
+# Soporte MySQL/MariaDB (servidor de la empresa)
+pymysql
+cryptography
+# Adaptador para hostings cPanel/Passenger (WSGI)
+a2wsgi

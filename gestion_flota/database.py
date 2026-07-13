@@ -7,12 +7,16 @@ from sqlmodel import Session, SQLModel, create_engine
 
 load_dotenv()
 
-# Reason: se permite sobreescribir la URL por variable de entorno para que los
-# tests puedan usar una base en memoria sin tocar la base real.
+# Reason: se permite sobreescribir la URL por variable de entorno; soporta
+# SQLite (default) y MySQL/MariaDB (mysql+pymysql://usuario:clave@host/base).
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///gestion_flota.db")
 
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    # Reason: pool_pre_ping y pool_recycle evitan el clásico
+    # "MySQL server has gone away" cuando la conexión queda ociosa.
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=1800)
 
 
 def init_db() -> None:
@@ -37,10 +41,16 @@ def _migrar_columnas() -> None:
     """
     Agrega columnas nuevas a tablas existentes (SQLite no las crea solo).
 
+    Solo aplica a SQLite: en MySQL las tablas se crean completas con
+    `create_all` (instalación nueva).
+
     Returns:
         None
     """
     from sqlalchemy import text
+
+    if engine.dialect.name != "sqlite":
+        return
 
     with engine.connect() as conn:
         for tabla, columnas_nuevas in _MIGRACIONES.items():
