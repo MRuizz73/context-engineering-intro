@@ -1,6 +1,6 @@
-"""Modelos de base de datos: choferes, camiones y documentos (cursos/permisos)."""
+"""Modelos de base de datos: choferes, camiones, documentos y usuarios."""
 
-from datetime import date
+from datetime import date, datetime
 from enum import Enum
 from typing import List, Optional
 
@@ -24,6 +24,22 @@ class EstadoDocumento(str, Enum):
     VIGENTE = "vigente"
     POR_VENCER = "por_vencer"
     VENCIDO = "vencido"
+
+
+class Usuario(SQLModel, table=True):
+    """Usuario de la aplicación (login sin verificación por email)."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    username: str = Field(index=True, unique=True)
+    password_hash: str
+
+
+class Sesion(SQLModel, table=True):
+    """Sesión activa de un usuario, identificada por un token aleatorio."""
+
+    token: str = Field(primary_key=True)
+    usuario_id: int = Field(foreign_key="usuario.id")
+    creada: datetime = Field(default_factory=datetime.utcnow)
 
 
 class Chofer(SQLModel, table=True):

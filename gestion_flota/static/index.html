@@ -4,10 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Flota — Cursos y Permisos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <header>
+  <!-- Pantalla de acceso -->
+  <div id="pantalla-login" class="pantalla-login oculta">
+    <div class="caja-login">
+      <h1 class="logo-login">iR</h1>
+      <p>Gestión de Flota · Nos renovamos para ti</p>
+      <form id="form-login" onsubmit="return enviarLogin(event)">
+        <label>Usuario <input id="login-usuario" required autocomplete="username"></label>
+        <label>Contraseña <input id="login-password" type="password" required minlength="6" autocomplete="current-password"></label>
+        <button type="submit" class="btn-marca" id="btn-login">Ingresar</button>
+        <p class="error-login" id="error-login"></p>
+        <p class="alternar-login" id="alternar-login">
+          ¿No tenés cuenta? <a onclick="alternarModoLogin()">Registrate</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <header id="cabecera" class="oculta">
+    <div class="barra-usuario">
+      <span id="usuario-actual"></span>
+      <button class="btn-chico" onclick="activarAvisos()" id="btn-avisos">🔔 Activar avisos</button>
+      <button class="btn-chico" onclick="cerrarSesion()">Salir</button>
+    </div>
     <h1>⛽ Gestión de Flota</h1>
     <p class="subtitulo">Cursos y permisos de choferes y camiones · Transporte de combustibles</p>
     <nav>
@@ -17,7 +41,7 @@
     </nav>
   </header>
 
-  <main>
+  <main id="contenido" class="oculta">
     <!-- Vista: Vencimientos -->
     <section id="vista-vencimientos" class="vista">
       <h2>Recordatorios de renovación</h2>
@@ -113,6 +137,7 @@
     </form>
   </div>
 
+  <script src="/static/auth.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>

@@ -22,6 +22,10 @@ async function api(ruta, opciones = {}) {
     headers: { "Content-Type": "application/json" },
     ...opciones,
   });
+  if (resp.status === 401) {
+    mostrarLogin();
+    throw new Error("Sesión expirada");
+  }
   if (!resp.ok) {
     let detalle = "Error en la operación";
     try {
@@ -365,4 +369,4 @@ function cargarTodo() {
   cargarCamiones();
 }
 
-cargarTodo();
+inicializarAuth();

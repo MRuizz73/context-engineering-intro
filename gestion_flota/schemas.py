@@ -3,9 +3,25 @@
 from datetime import date
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .models import EstadoDocumento, TipoDocumento
+
+
+class Credenciales(BaseModel):
+    """Datos de registro o inicio de sesión."""
+
+    username: str = Field(min_length=3, max_length=50)
+    password: str = Field(min_length=6, max_length=128)
+
+
+class UsuarioRead(BaseModel):
+    """Usuario autenticado (sin datos sensibles)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    username: str
 
 
 class ChoferCreate(BaseModel):

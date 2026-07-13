@@ -3,12 +3,13 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .database import init_db
-from .routers import camiones, choferes, documentos
+from .routers import auth, camiones, choferes, documentos
+from .seguridad import usuario_actual
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -34,9 +35,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.include_router(choferes.router)
-app.include_router(camiones.router)
-app.include_router(documentos.router)
+app.include_router(auth.router)
+
+# Reason: los datos de la flota solo son visibles con sesión iniciada.
+protegido = [Depends(usuario_actual)]
+app.include_router(choferes.router, dependencies=protegido)
+app.include_router(camiones.router, dependencies=protegido)
+app.include_router(documentos.router, dependencies=protegido)
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 

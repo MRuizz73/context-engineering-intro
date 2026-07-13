@@ -4,8 +4,18 @@ Aplicación web para empresas de transporte de combustibles: administra los
 **choferes**, los **camiones** y todos sus **cursos, permisos y habilitaciones**,
 con **recordatorios configurables** para las renovaciones.
 
+La interfaz usa la identidad visual de la empresa (Manual de Uso iR): verde
+`#85F64B`, celeste `#36A9E1`, degradado de verde a celeste y tipografía Lato.
+
 ## Funcionalidades
 
+- **Login y registro**: cuentas con usuario y contraseña (sin verificación
+  por email). Los datos de la flota solo se ven con sesión iniciada; la
+  sesión dura 30 días.
+- **Notificaciones de escritorio**: con el botón *🔔 Activar avisos* el
+  navegador pide permiso y luego avisa en el ordenador cuando hay cursos o
+  permisos vencidos o por vencer (revisa cada hora y avisa una vez por día
+  por documento).
 - **Choferes**: alta, edición y baja, con DNI único, teléfono y email.
 - **Camiones**: alta, edición y baja, con patente única, marca, modelo y año.
 - **Documentos** (cursos, permisos, licencias, seguros, revisión técnica):
@@ -68,3 +78,7 @@ gestion_flota/
 | GET/POST | `/api/documentos` | Listar / crear documentos (filtro `?estado=`) |
 | PUT/DELETE | `/api/documentos/{id}` | Renovar / borrar un documento |
 | GET | `/api/vencimientos` | Recordatorios activos (vencidos y por vencer) |
+| POST | `/api/auth/registro` | Crear cuenta (queda logueado) |
+| POST | `/api/auth/login` | Iniciar sesión |
+| POST | `/api/auth/logout` | Cerrar sesión |
+| GET | `/api/auth/yo` | Usuario actual (401 si no hay sesión) |

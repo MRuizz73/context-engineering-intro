@@ -27,16 +27,16 @@ def session_fixture():
         yield session
 
 
-@pytest.fixture(name="client")
-def client_fixture(session: Session):
+@pytest.fixture(name="client_anonimo")
+def client_anonimo_fixture(session: Session):
     """
-    Cliente HTTP de prueba con la dependencia de sesión sobreescrita.
+    Cliente HTTP de prueba SIN sesión iniciada.
 
     Args:
         session (Session): sesión de prueba en memoria.
 
     Yields:
-        TestClient: cliente para llamar a la API.
+        TestClient: cliente sin autenticar.
     """
 
     def get_session_override():
@@ -46,6 +46,25 @@ def client_fixture(session: Session):
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(name="client")
+def client_fixture(client_anonimo: TestClient):
+    """
+    Cliente HTTP de prueba con un usuario registrado y logueado.
+
+    Args:
+        client_anonimo (TestClient): cliente base sin sesión.
+
+    Yields:
+        TestClient: cliente autenticado (cookie de sesión seteada).
+    """
+    resp = client_anonimo.post(
+        "/api/auth/registro",
+        json={"username": "admin", "password": "secreto123"},
+    )
+    assert resp.status_code == 201
+    yield client_anonimo
 
 
 def crear_chofer(client: TestClient, dni: str = "30111222") -> dict:
