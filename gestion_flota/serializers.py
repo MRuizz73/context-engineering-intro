@@ -48,6 +48,7 @@ def documento_a_read(doc: Documento, hoy: Optional[date] = None) -> DocumentoRea
         estado=doc.estado(hoy),
         dias_restantes=doc.dias_restantes(hoy),
         titular=titular_de(doc),
+        email_destino=doc.chofer.email if doc.chofer else None,
     )
 
 

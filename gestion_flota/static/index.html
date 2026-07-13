@@ -44,8 +44,14 @@
   <main id="contenido" class="oculta">
     <!-- Vista: Vencimientos -->
     <section id="vista-vencimientos" class="vista">
-      <h2>Recordatorios de renovación</h2>
-      <p class="ayuda">Documentos vencidos o dentro de su ventana de aviso.</p>
+      <div class="barra">
+        <h2>Recordatorios de renovación</h2>
+        <button class="btn-primario" onclick="enviarRecordatorios(this)">📧 Enviar recordatorios por email</button>
+      </div>
+      <p class="ayuda">
+        Documentos vencidos o dentro de su ventana de aviso. La alerta permanece
+        hasta que pulses <strong>✔ Renovado</strong> con la nueva fecha.
+      </p>
       <div id="lista-vencimientos"></div>
     </section>
 
@@ -65,7 +71,7 @@
         </div>
         <div class="fila">
           <label>Teléfono <input id="chofer-telefono"></label>
-          <label>Email <input id="chofer-email" type="email"></label>
+          <label>Email (recibe los recordatorios) <input id="chofer-email" type="email" required placeholder="chofer@email.com"></label>
           <label class="check"><input id="chofer-activo" type="checkbox" checked> Activo</label>
         </div>
         <div class="acciones">
@@ -133,6 +139,23 @@
       <div class="acciones">
         <button type="submit" class="btn-primario">Guardar</button>
         <button type="button" onclick="cerrarModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal de renovación -->
+  <div id="modal-renovar" class="modal oculta">
+    <form class="tarjeta modal-contenido" onsubmit="return confirmarRenovacion(event)">
+      <h3 id="titulo-renovar">Confirmar renovación</h3>
+      <p id="renovar-info" class="ayuda"></p>
+      <input type="hidden" id="renovar-id">
+      <div class="fila">
+        <label>Fecha de emisión (renovación) <input id="renovar-emision" type="date"></label>
+        <label>Nueva fecha de vencimiento <input id="renovar-vencimiento" type="date" required></label>
+      </div>
+      <div class="acciones">
+        <button type="submit" class="btn-marca">✔ Confirmar renovación</button>
+        <button type="button" onclick="cerrarRenovar()">Cancelar</button>
       </div>
     </form>
   </div>

@@ -94,16 +94,80 @@ async function cargarVencimientos() {
             <strong>${esc(d.nombre)}</strong>
             <span class="badge ${d.estado}">${ESTADOS[d.estado]}</span>
           </div>
-          <strong>${textoDias(d)}</strong>
+          <div class="acciones" style="margin:0">
+            <strong style="margin-right:0.6rem">${textoDias(d)}</strong>
+            <button class="btn-chico btn-marca" onclick='abrirRenovar(${JSON.stringify(JSON.stringify(d))})'>
+              ✔ ${d.tipo === "curso" ? "Curso renovado" : "Permiso renovado"}
+            </button>
+          </div>
         </div>
         <p class="item-datos">
           ${esc(TIPOS[d.tipo] || d.tipo)} · ${esc(d.titular)} ·
           Vencimiento: ${fechaLegible(d.fecha_vencimiento)} ·
-          Aviso: ${d.dias_aviso} días antes
+          Aviso: ${d.dias_aviso} días antes ·
+          📧 ${destinoEmail(d)}
         </p>
       </div>`
     )
     .join("");
+}
+
+function destinoEmail(d) {
+  if (d.email_destino) return esc(d.email_destino);
+  if (d.camion_id) return "email de la empresa";
+  return "⚠️ chofer sin email cargado";
+}
+
+// ---------- envío manual de recordatorios ----------
+
+async function enviarRecordatorios(boton) {
+  boton.disabled = true;
+  boton.textContent = "Enviando…";
+  try {
+    const resumen = await api("/api/avisos/enviar", { method: "POST" });
+    const detalle =
+      resumen.documentos_avisados === 0
+        ? "No había avisos pendientes de enviar (ya se avisaron o no hay vencimientos)."
+        : `Se enviaron ${resumen.emails_enviados} email(s) cubriendo ${resumen.documentos_avisados} documento(s).`;
+    alert(`📧 ${detalle}`);
+  } finally {
+    boton.disabled = false;
+    boton.textContent = "📧 Enviar recordatorios por email";
+  }
+}
+
+// ---------- renovación ----------
+
+function abrirRenovar(docJson) {
+  const d = JSON.parse(docJson);
+  document.getElementById("renovar-id").value = d.id;
+  document.getElementById("titulo-renovar").textContent =
+    d.tipo === "curso" ? "Confirmar curso renovado" : "Confirmar permiso renovado";
+  document.getElementById("renovar-info").textContent =
+    `${d.nombre} — ${d.titular}. Al confirmar, la alerta se quita y arranca la nueva vigencia.`;
+  const hoy = new Date().toISOString().slice(0, 10);
+  document.getElementById("renovar-emision").value = hoy;
+  document.getElementById("renovar-vencimiento").value = "";
+  document.getElementById("modal-renovar").classList.remove("oculta");
+}
+
+function cerrarRenovar() {
+  document.getElementById("modal-renovar").classList.add("oculta");
+}
+
+async function confirmarRenovacion(evento) {
+  evento.preventDefault();
+  const id = document.getElementById("renovar-id").value;
+  await api(`/api/documentos/${id}/renovar`, {
+    method: "POST",
+    body: JSON.stringify({
+      fecha_vencimiento: document.getElementById("renovar-vencimiento").value,
+      fecha_emision: document.getElementById("renovar-emision").value || null,
+    }),
+  });
+  cerrarRenovar();
+  cargarTodo();
+  return false;
 }
 
 // ---------- documentos (tabla compartida) ----------
@@ -122,6 +186,7 @@ function tablaDocumentos(docs, tipoTitular, titularId) {
         <td>${d.dias_aviso} días</td>
         <td><span class="badge ${d.estado}">${ESTADOS[d.estado]}</span> <small>${esc(textoDias(d))}</small></td>
         <td>
+          ${d.estado !== "vigente" ? `<button class="btn-chico btn-marca" onclick='abrirRenovar(${JSON.stringify(JSON.stringify(d))})'>✔ Renovado</button>` : ""}
           <button class="btn-chico" onclick='abrirFormDoc(${JSON.stringify(JSON.stringify(d))}, "${tipoTitular}", ${titularId})'>Editar</button>
           <button class="btn-chico btn-peligro" onclick="borrarDocumento(${d.id})">Borrar</button>
         </td>
@@ -160,7 +225,8 @@ async function cargarChoferes() {
           </div>
         </div>
         <p class="item-datos">
-          DNI: ${esc(c.dni)}${c.telefono ? " · Tel: " + esc(c.telefono) : ""}${c.email ? " · " + esc(c.email) : ""}
+          DNI: ${esc(c.dni)}${c.telefono ? " · Tel: " + esc(c.telefono) : ""}
+          ${c.email ? " · 📧 " + esc(c.email) : ' · <span class="badge vencido">⚠️ Sin email para recordatorios</span>'}
         </p>
         ${tablaDocumentos(c.documentos, "chofer", c.id)}
       </div>`

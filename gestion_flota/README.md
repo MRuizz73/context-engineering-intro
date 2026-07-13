@@ -23,8 +23,15 @@ La interfaz usa la identidad visual de la empresa (Manual de Uso iR): verde
   ventana de aviso configurable (`dias_aviso`).
 - **Recordatorios**: la pestaña *Vencimientos* muestra automáticamente todo
   documento vencido o dentro de su ventana de aviso, ordenado por urgencia.
-- **Renovaciones**: al renovar un curso/permiso, se edita el documento con la
-  nueva fecha y el estado vuelve a *Vigente*.
+  **La alerta no se quita sola**: permanece hasta confirmar la renovación.
+- **Botón "✔ Curso/Permiso renovado"**: en cada alerta (y en las tablas), al
+  pulsarlo se carga la nueva fecha de vencimiento y la alerta desaparece.
+- **Emails a los choferes**: cada chofer tiene su email en el perfil (campo
+  obligatorio en el formulario) y recibe en su correo los recordatorios de
+  SUS cursos. Los avisos de camiones (y de choferes sin email) van al email
+  administrativo. Se envían automáticamente (revisión cada 12 h, un aviso
+  cada `AVISO_EMAIL_CADA_DIAS` días por documento hasta que se renueve) o
+  manualmente con el botón *📧 Enviar recordatorios por email*.
 
 ## Cómo ejecutarla
 
@@ -44,6 +51,15 @@ python3 -m venv venv_linux
 Los datos se guardan en `gestion_flota.db` (SQLite) en el directorio desde el
 que se ejecuta el servidor. Se puede cambiar con la variable de entorno
 `DATABASE_URL`.
+
+### Conectar el correo de la empresa
+
+Copiá `.env.example` a `.env` y completá los datos SMTP de la cuenta de la
+empresa. Para Gmail: `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587` y una
+**contraseña de aplicación** (se genera en la cuenta de Google, en
+Seguridad → Verificación en dos pasos → Contraseñas de aplicaciones).
+Sin esta configuración la app funciona igual, pero el envío de emails
+devuelve un error explicativo.
 
 ## Tests
 
@@ -76,7 +92,9 @@ gestion_flota/
 | GET/POST | `/api/camiones` | Listar / crear camiones |
 | GET/PUT/DELETE | `/api/camiones/{id}` | Ver / editar / borrar un camión |
 | GET/POST | `/api/documentos` | Listar / crear documentos (filtro `?estado=`) |
-| PUT/DELETE | `/api/documentos/{id}` | Renovar / borrar un documento |
+| PUT/DELETE | `/api/documentos/{id}` | Editar / borrar un documento |
+| POST | `/api/documentos/{id}/renovar` | Confirmar renovación (quita la alerta) |
+| POST | `/api/avisos/enviar` | Enviar ya los recordatorios por email |
 | GET | `/api/vencimientos` | Recordatorios activos (vencidos y por vencer) |
 | POST | `/api/auth/registro` | Crear cuenta (queda logueado) |
 | POST | `/api/auth/login` | Iniciar sesión |

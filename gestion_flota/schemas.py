@@ -77,6 +77,13 @@ class DocumentoCreate(BaseModel):
         return self
 
 
+class RenovacionDocumento(BaseModel):
+    """Datos para renovar un documento (nueva vigencia tras el trámite)."""
+
+    fecha_vencimiento: date
+    fecha_emision: Optional[date] = None
+
+
 class DocumentoRead(BaseModel):
     """Documento con su estado de vencimiento calculado."""
 
@@ -94,6 +101,7 @@ class DocumentoRead(BaseModel):
     estado: EstadoDocumento
     dias_restantes: int
     titular: str
+    email_destino: Optional[str] = None
 
 
 class ChoferRead(BaseModel):

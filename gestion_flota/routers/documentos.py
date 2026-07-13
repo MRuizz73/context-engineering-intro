@@ -1,13 +1,15 @@
 """Endpoints CRUD de documentos (cursos/permisos) y recordatorios de vencimiento."""
 
+from datetime import date
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 
+from .. import correo
 from ..database import get_session
 from ..models import Camion, Chofer, Documento, EstadoDocumento
-from ..schemas import DocumentoCreate, DocumentoRead
+from ..schemas import DocumentoCreate, DocumentoRead, RenovacionDocumento
 from ..serializers import documento_a_read
 
 router = APIRouter(prefix="/api", tags=["documentos"])
@@ -112,6 +114,67 @@ def actualizar_documento(
     session.commit()
     session.refresh(doc)
     return documento_a_read(doc)
+
+
+@router.post("/documentos/{documento_id}/renovar", response_model=DocumentoRead)
+def renovar_documento(
+    documento_id: int,
+    datos: RenovacionDocumento,
+    session: Session = Depends(get_session),
+) -> DocumentoRead:
+    """
+    Marca un documento como renovado: nueva vigencia y alerta despejada.
+
+    La alerta de un documento vencido/por vencer permanece activa hasta que
+    se confirma la renovación por este endpoint con la nueva fecha.
+
+    Args:
+        documento_id (int): id del documento renovado.
+        datos (RenovacionDocumento): nueva fecha de vencimiento (y emisión).
+
+    Returns:
+        DocumentoRead: el documento ya renovado (estado vigente).
+    """
+    doc = session.get(Documento, documento_id)
+    if doc is None:
+        raise HTTPException(status_code=404, detail="Documento no encontrado")
+    if datos.fecha_vencimiento <= date.today():
+        raise HTTPException(
+            status_code=422,
+            detail="La nueva fecha de vencimiento debe ser posterior a hoy",
+        )
+    doc.fecha_emision = datos.fecha_emision or date.today()
+    doc.fecha_vencimiento = datos.fecha_vencimiento
+    doc.ultimo_aviso_email = None
+    session.add(doc)
+    session.commit()
+    session.refresh(doc)
+    return documento_a_read(doc)
+
+
+@router.post("/avisos/enviar")
+def enviar_avisos(session: Session = Depends(get_session)) -> dict:
+    """
+    Envía ahora los recordatorios por email con el correo de la empresa.
+
+    Returns:
+        dict: resumen de emails enviados y documentos avisados.
+
+    Raises:
+        HTTPException: 503 si no hay servidor de correo configurado.
+    """
+    if not correo.smtp_configurado():
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "El correo de la empresa no está configurado. Definí SMTP_HOST, "
+                "SMTP_USER y SMTP_PASSWORD en el archivo .env y reiniciá la app."
+            ),
+        )
+    try:
+        return correo.enviar_recordatorios(session)
+    except Exception as exc:  # Reason: el error SMTP debe llegar legible a la UI.
+        raise HTTPException(status_code=502, detail=f"Error al enviar emails: {exc}")
 
 
 @router.delete("/documentos/{documento_id}", status_code=204)

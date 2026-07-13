@@ -14,7 +14,13 @@
   una vez por día por documento) y login/registro simple sin verificación
   por email (PBKDF2 + cookie de sesión de 30 días). 22 tests pasando.
 
+- [x] **2026-07-13** — Recordatorios por email al correo de cada chofer
+  (SMTP de la empresa vía `.env`, envío automático cada 12 h y manual con
+  botón; frecuencia configurable por documento), email obligatorio en el
+  perfil del chofer, y botón "✔ Curso/Permiso renovado" que es la única
+  forma de quitar la alerta (pide la nueva fecha de vencimiento).
+  29 tests pasando; verificado con servidor SMTP local real.
+
 ## Discovered During Work
 
-- [ ] Envío de recordatorios por email/WhatsApp además del panel web
-  (requiere integrar un proveedor de correo o mensajería).
+- [ ] Recordatorios por WhatsApp además de email y panel web.

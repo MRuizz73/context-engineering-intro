@@ -17,12 +17,32 @@ engine = create_engine(DATABASE_URL, connect_args=connect_args)
 
 def init_db() -> None:
     """
-    Crea todas las tablas si no existen.
+    Crea todas las tablas si no existen y aplica migraciones simples.
 
     Returns:
         None
     """
     SQLModel.metadata.create_all(engine)
+    _migrar_columnas()
+
+
+def _migrar_columnas() -> None:
+    """
+    Agrega columnas nuevas a tablas existentes (SQLite no las crea solo).
+
+    Returns:
+        None
+    """
+    from sqlalchemy import text
+
+    with engine.connect() as conn:
+        columnas = [
+            fila[1]
+            for fila in conn.execute(text("PRAGMA table_info(documento)")).fetchall()
+        ]
+        if columnas and "ultimo_aviso_email" not in columnas:
+            conn.execute(text("ALTER TABLE documento ADD COLUMN ultimo_aviso_email DATE"))
+            conn.commit()
 
 
 def get_session():

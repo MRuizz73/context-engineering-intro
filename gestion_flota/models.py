@@ -91,6 +91,9 @@ class Documento(SQLModel, table=True):
     fecha_vencimiento: date = Field(index=True)
     dias_aviso: int = Field(default=30, ge=0)
     notas: Optional[str] = None
+    # Reason: guarda cuándo se envió el último email para no repetir el
+    # aviso todos los días; se resetea al renovar el documento.
+    ultimo_aviso_email: Optional[date] = None
 
     chofer_id: Optional[int] = Field(default=None, foreign_key="chofer.id")
     camion_id: Optional[int] = Field(default=None, foreign_key="camion.id")
