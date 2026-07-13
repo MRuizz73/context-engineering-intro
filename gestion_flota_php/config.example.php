@@ -6,11 +6,13 @@
  * `config.php` NUNCA debe subirse al repositorio.
  */
 return [
-    // Conexión al MySQL del hosting (datos de cPanel → MySQL Databases).
+    // Conexión a la base MariaDB 10.11 del hosting (cPanel → Bases de datos).
+    // OJO: el prefijo "mysql:" es el nombre del driver de PHP y es el
+    // CORRECTO también para MariaDB — no hay que cambiarlo.
     'db' => [
         'dsn'      => 'mysql:host=localhost;dbname=gestion_flota;charset=utf8mb4',
-        'usuario'  => 'usuario_mysql',
-        'password' => 'CAMBIAR-CLAVE-MYSQL',
+        'usuario'  => 'usuario_bd',
+        'password' => 'CAMBIAR-CLAVE-BD',
     ],
 
     // Correo de la empresa para los recordatorios.

@@ -55,6 +55,12 @@
   pasado a español de España/canario (sin voseo; "chófer", "matrícula").
   Excel de cuentas regenerado con instrucciones es-ES.
 
+- [x] **2026-07-13** — Confirmada compatibilidad con MariaDB 10.11 (el motor
+  del servidor de la empresa): la verificación completa se hizo contra
+  MariaDB 10.11.14 real; documentación y config.example.php actualizados
+  para hablar de MariaDB (el prefijo PDO "mysql:" es el driver correcto
+  también para MariaDB).
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.

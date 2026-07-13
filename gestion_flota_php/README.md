@@ -1,10 +1,15 @@
-# ⛽ Gestión de Flota — versión PHP + MySQL
+# ⛽ Gestión de Flota — versión PHP + MariaDB
 
 La misma aplicación de cursos y permisos de chóferes y camiones, reescrita
 en **PHP** (sin frameworks ni dependencias) para funcionar en cualquier
-hosting PHP con **MySQL**: cPanel, Plesk o un servidor LAMP propio.
-Requiere PHP 8.0+ con las extensiones `pdo_mysql` y `openssl` (estándar en
-todos los hostings).
+hosting PHP con **MariaDB 10.11** (también compatible con MySQL): cPanel,
+Plesk o un servidor LAMP propio. Requiere PHP 8.0+ con las extensiones
+`pdo_mysql` y `openssl` (estándar en todos los hostings; `pdo_mysql` es el
+driver que usa PHP para conectarse a MariaDB).
+
+Verificada de punta a punta contra **MariaDB 10.11.14**: creación de
+tablas (InnoDB, utf8mb4), importación completa del calendario, login con
+roles, renovaciones y envío de emails.
 
 Idéntica a la versión Python: login con roles (responsable ve todo, cada
 chófer solo lo suyo), cuentas iniciales del Excel, generador de cuentas,
@@ -14,9 +19,10 @@ automática del calendario de la empresa.
 
 ## Instalación en el hosting (paso a paso)
 
-1. **Crear la base de datos** (cPanel → *Bases de datos MySQL*):
-   crea la base `gestion_flota`, un usuario y dale **todos los permisos**.
-   Apunta el nombre completo (suele quedar `usuario_gestion_flota`).
+1. **Crear la base de datos** (cPanel → *Bases de datos MySQL®* — así se
+   llama el menú aunque el motor sea MariaDB): crea la base
+   `gestion_flota`, un usuario y dale **todos los permisos**. Apunta el
+   nombre completo (suele quedar `usuario_gestion_flota`).
 
 2. **Subir esta carpeta** al hosting (Administrador de archivos o FTP):
    todo el contenido de `gestion_flota_php/` dentro de `public_html/flota/`
