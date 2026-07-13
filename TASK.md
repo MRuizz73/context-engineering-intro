@@ -61,6 +61,12 @@
   para hablar de MariaDB (el prefijo PDO "mysql:" es el driver correcto
   también para MariaDB).
 
+- [x] **2026-07-13** — Tutorial de uso en PDF (17 páginas, con capturas
+  reales de cada pantalla, es-ES): acceso y registro, panel de
+  vencimientos, renovaciones, chóferes y perfil con cuestionario, alta con
+  generador de cuenta, camiones, avisos automáticos, vista del chófer,
+  cambio de contraseña y FAQ. `gestion_flota_php/Tutorial_Gestion_Flota.pdf`.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.
