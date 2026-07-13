@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Flota — Cursos y Permisos</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header>
+    <h1>⛽ Gestión de Flota</h1>
+    <p class="subtitulo">Cursos y permisos de choferes y camiones · Transporte de combustibles</p>
+    <nav>
+      <button class="tab activa" data-vista="vencimientos">🔔 Vencimientos</button>
+      <button class="tab" data-vista="choferes">👷 Choferes</button>
+      <button class="tab" data-vista="camiones">🚛 Camiones</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Vista: Vencimientos -->
+    <section id="vista-vencimientos" class="vista">
+      <h2>Recordatorios de renovación</h2>
+      <p class="ayuda">Documentos vencidos o dentro de su ventana de aviso.</p>
+      <div id="lista-vencimientos"></div>
+    </section>
+
+    <!-- Vista: Choferes -->
+    <section id="vista-choferes" class="vista oculta">
+      <div class="barra">
+        <h2>Choferes</h2>
+        <button class="btn-primario" onclick="abrirFormChofer()">+ Nuevo chofer</button>
+      </div>
+      <form id="form-chofer" class="tarjeta oculta" onsubmit="return guardarChofer(event)">
+        <h3 id="titulo-form-chofer">Nuevo chofer</h3>
+        <input type="hidden" id="chofer-id">
+        <div class="fila">
+          <label>Nombre <input id="chofer-nombre" required></label>
+          <label>Apellido <input id="chofer-apellido" required></label>
+          <label>DNI <input id="chofer-dni" required></label>
+        </div>
+        <div class="fila">
+          <label>Teléfono <input id="chofer-telefono"></label>
+          <label>Email <input id="chofer-email" type="email"></label>
+          <label class="check"><input id="chofer-activo" type="checkbox" checked> Activo</label>
+        </div>
+        <div class="acciones">
+          <button type="submit" class="btn-primario">Guardar</button>
+          <button type="button" onclick="cerrarForms()">Cancelar</button>
+        </div>
+      </form>
+      <div id="lista-choferes"></div>
+    </section>
+
+    <!-- Vista: Camiones -->
+    <section id="vista-camiones" class="vista oculta">
+      <div class="barra">
+        <h2>Camiones</h2>
+        <button class="btn-primario" onclick="abrirFormCamion()">+ Nuevo camión</button>
+      </div>
+      <form id="form-camion" class="tarjeta oculta" onsubmit="return guardarCamion(event)">
+        <h3 id="titulo-form-camion">Nuevo camión</h3>
+        <input type="hidden" id="camion-id">
+        <div class="fila">
+          <label>Patente <input id="camion-patente" required></label>
+          <label>Marca <input id="camion-marca"></label>
+          <label>Modelo <input id="camion-modelo"></label>
+        </div>
+        <div class="fila">
+          <label>Año <input id="camion-anio" type="number" min="1950" max="2100"></label>
+          <label class="check"><input id="camion-activo" type="checkbox" checked> Activo</label>
+        </div>
+        <div class="acciones">
+          <button type="submit" class="btn-primario">Guardar</button>
+          <button type="button" onclick="cerrarForms()">Cancelar</button>
+        </div>
+      </form>
+      <div id="lista-camiones"></div>
+    </section>
+  </main>
+
+  <!-- Modal de documento (curso/permiso) -->
+  <div id="modal-doc" class="modal oculta">
+    <form class="tarjeta modal-contenido" onsubmit="return guardarDocumento(event)">
+      <h3 id="titulo-form-doc">Nuevo documento</h3>
+      <p id="doc-titular" class="ayuda"></p>
+      <input type="hidden" id="doc-id">
+      <input type="hidden" id="doc-chofer-id">
+      <input type="hidden" id="doc-camion-id">
+      <div class="fila">
+        <label>Nombre del curso/permiso <input id="doc-nombre" required placeholder="Ej: Curso cargas peligrosas"></label>
+        <label>Tipo
+          <select id="doc-tipo">
+            <option value="curso">Curso</option>
+            <option value="permiso">Permiso</option>
+            <option value="licencia">Licencia</option>
+            <option value="seguro">Seguro</option>
+            <option value="revision_tecnica">Revisión técnica</option>
+            <option value="otro">Otro</option>
+          </select>
+        </label>
+      </div>
+      <div class="fila">
+        <label>Fecha de emisión <input id="doc-emision" type="date"></label>
+        <label>Fecha de vencimiento <input id="doc-vencimiento" type="date" required></label>
+        <label>Avisar (días antes) <input id="doc-aviso" type="number" min="0" value="30" required></label>
+      </div>
+      <label>Notas <textarea id="doc-notas" rows="2"></textarea></label>
+      <div class="acciones">
+        <button type="submit" class="btn-primario">Guardar</button>
+        <button type="button" onclick="cerrarModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
