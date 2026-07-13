@@ -61,7 +61,7 @@ function textoDias(doc) {
 
 // ---------- navegación ----------
 
-document.querySelectorAll(".tab").forEach((tab) => {
+document.querySelectorAll(".tab[data-vista]").forEach((tab) => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("activa"));
     tab.classList.add("activa");
@@ -187,8 +187,9 @@ function tablaDocumentos(docs, tipoTitular, titularId) {
         <td><span class="badge ${d.estado}">${ESTADOS[d.estado]}</span> <small>${esc(textoDias(d))}</small></td>
         <td>
           ${d.estado !== "vigente" ? `<button class="btn-chico btn-marca" onclick='abrirRenovar(${JSON.stringify(JSON.stringify(d))})'>✔ Renovado</button>` : ""}
+          ${window.esAdmin === false ? "" : `
           <button class="btn-chico" onclick='abrirFormDoc(${JSON.stringify(JSON.stringify(d))}, "${tipoTitular}", ${titularId})'>Editar</button>
-          <button class="btn-chico btn-peligro" onclick="borrarDocumento(${d.id})">Borrar</button>
+          <button class="btn-chico btn-peligro" onclick="borrarDocumento(${d.id})">Borrar</button>`}
         </td>
       </tr>`
     )
@@ -221,6 +222,7 @@ async function cargarChoferes() {
           <div class="acciones" style="margin:0">
             <button class="btn-chico btn-marca" onclick="abrirPerfil(${c.id})">👤 Ver perfil</button>
             <button class="btn-chico btn-primario" onclick="abrirFormDoc(null, 'chofer', ${c.id}, '${esc(c.apellido)}, ${esc(c.nombre)}')">+ Curso/Permiso</button>
+            <button class="btn-chico" onclick="generarCuentaChofer(${c.id})">🔐 Cuenta</button>
             <button class="btn-chico" onclick='editarChofer(${JSON.stringify(JSON.stringify(c))})'>Editar</button>
             <button class="btn-chico btn-peligro" onclick="borrarChofer(${c.id})">Borrar</button>
           </div>
@@ -273,11 +275,31 @@ async function guardarChofer(evento) {
   if (id) {
     await api(`/api/choferes/${id}`, { method: "PUT", body: JSON.stringify(datos) });
   } else {
-    await api("/api/choferes", { method: "POST", body: JSON.stringify(datos) });
+    const nuevo = await api("/api/choferes", { method: "POST", body: JSON.stringify(datos) });
+    if (document.getElementById("chofer-generar-cuenta").checked) {
+      await generarCuentaChofer(nuevo.id);
+    }
   }
   cerrarForms();
   cargarTodo();
   return false;
+}
+
+async function generarCuentaChofer(choferId) {
+  const cred = await api(`/api/choferes/${choferId}/crear-cuenta`, { method: "POST" });
+  document.getElementById("cred-usuario").value = cred.username;
+  document.getElementById("cred-password").value = cred.password;
+  document.getElementById("modal-credenciales").classList.remove("oculta");
+}
+
+async function copiarCredenciales() {
+  const texto = `Usuario: ${document.getElementById("cred-usuario").value}\nContraseña: ${document.getElementById("cred-password").value}`;
+  try {
+    await navigator.clipboard.writeText(texto);
+    alert("Credenciales copiadas al portapapeles");
+  } catch (e) {
+    alert(texto);
+  }
 }
 
 async function borrarChofer(id) {
@@ -432,8 +454,10 @@ async function borrarDocumento(id) {
 
 function cargarTodo() {
   cargarVencimientos();
-  cargarChoferes();
-  cargarCamiones();
+  if (window.esAdmin !== false) {
+    cargarChoferes();
+    cargarCamiones();
+  }
   if (window.refrescarPerfilSiAbierto) refrescarPerfilSiAbierto();
 }
 

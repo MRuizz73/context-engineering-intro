@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from .models import EstadoDocumento, TipoDocumento
+from .models import EstadoDocumento, RolUsuario, TipoDocumento
 
 
 class Credenciales(BaseModel):
@@ -13,6 +13,19 @@ class Credenciales(BaseModel):
 
     username: str = Field(min_length=3, max_length=50)
     password: str = Field(min_length=6, max_length=128)
+    # Reason: si CODIGO_REGISTRO está configurado, solo puede crear cuenta
+    # quien conozca el código interno de la empresa.
+    codigo: Optional[str] = None
+    # Al registrarse como chofer: email cargado en su perfil, para vincular
+    # la cuenta con el chofer correcto.
+    email_chofer: Optional[str] = None
+
+
+class CambioPassword(BaseModel):
+    """Datos para cambiar la contraseña de la propia cuenta."""
+
+    password_actual: str
+    password_nueva: str = Field(min_length=6, max_length=128)
 
 
 class UsuarioRead(BaseModel):
@@ -22,6 +35,8 @@ class UsuarioRead(BaseModel):
 
     id: int
     username: str
+    rol: RolUsuario = RolUsuario.ADMIN
+    chofer_id: Optional[int] = None
 
 
 class ChoferCreate(BaseModel):

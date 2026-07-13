@@ -1,6 +1,7 @@
-// Autenticación (login/registro) y notificaciones de escritorio.
+// Autenticación (login/registro), roles y notificaciones de escritorio.
 
 let modoRegistro = false;
+let usuarioActual = null;
 
 // ---------- login / registro ----------
 
@@ -11,17 +12,36 @@ function mostrarLogin() {
 }
 
 function mostrarApp(usuario) {
+  usuarioActual = usuario;
+  window.esAdmin = usuario.rol !== "chofer";
   document.getElementById("pantalla-login").classList.add("oculta");
   document.getElementById("cabecera").classList.remove("oculta");
   document.getElementById("contenido").classList.remove("oculta");
-  document.getElementById("usuario-actual").textContent = `👤 ${usuario.username}`;
+  document.getElementById("usuario-actual").textContent =
+    `👤 ${usuario.username}${window.esAdmin ? " (responsable)" : ""}`;
+
+  // Un chofer solo ve sus vencimientos y su perfil.
+  document.querySelectorAll('[data-vista="choferes"], [data-vista="camiones"]')
+    .forEach((t) => t.classList.toggle("oculta", !window.esAdmin));
+  document.getElementById("tab-perfil").classList.toggle("oculta", window.esAdmin);
+  document.getElementById("btn-enviar-avisos").classList.toggle("oculta", !window.esAdmin);
+
   actualizarBotonAvisos();
   cargarTodo();
   iniciarAvisos();
 }
 
+function abrirMiPerfil(tab) {
+  document.querySelectorAll(".tab").forEach((t) => t.classList.remove("activa"));
+  tab.classList.add("activa");
+  abrirPerfil(usuarioActual.chofer_id);
+}
+
 function alternarModoLogin() {
   modoRegistro = !modoRegistro;
+  document.getElementById("campo-codigo").classList.toggle("oculta", !modoRegistro);
+  document.getElementById("campo-tipo").classList.toggle("oculta", !modoRegistro);
+  cambioTipoCuenta();
   document.getElementById("btn-login").textContent = modoRegistro ? "Crear cuenta" : "Ingresar";
   document.getElementById("alternar-login").innerHTML = modoRegistro
     ? '¿Ya tenés cuenta? <a onclick="alternarModoLogin()">Ingresá</a>'
@@ -29,11 +49,23 @@ function alternarModoLogin() {
   document.getElementById("error-login").textContent = "";
 }
 
+function cambioTipoCuenta() {
+  const esChofer =
+    modoRegistro && document.getElementById("login-tipo").value === "chofer";
+  document.getElementById("campo-email-chofer").classList.toggle("oculta", !esChofer);
+}
+
 async function enviarLogin(evento) {
   evento.preventDefault();
+  const esChofer =
+    modoRegistro && document.getElementById("login-tipo").value === "chofer";
   const datos = {
     username: document.getElementById("login-usuario").value.trim(),
     password: document.getElementById("login-password").value,
+    codigo: document.getElementById("login-codigo").value.trim() || null,
+    email_chofer: esChofer
+      ? document.getElementById("login-email-chofer").value.trim()
+      : null,
   };
   const ruta = modoRegistro ? "/api/auth/registro" : "/api/auth/login";
   const resp = await fetch(ruta, {
@@ -68,6 +100,44 @@ async function inicializarAuth() {
   } else {
     mostrarLogin();
   }
+}
+
+// ---------- cambio de contraseña ----------
+
+function abrirCambioPassword() {
+  document.getElementById("pass-actual").value = "";
+  document.getElementById("pass-nueva").value = "";
+  document.getElementById("pass-repetir").value = "";
+  document.getElementById("modal-password").classList.remove("oculta");
+}
+
+function cerrarCambioPassword() {
+  document.getElementById("modal-password").classList.add("oculta");
+}
+
+async function cambiarPassword(evento) {
+  evento.preventDefault();
+  const nueva = document.getElementById("pass-nueva").value;
+  if (nueva !== document.getElementById("pass-repetir").value) {
+    alert("Las contraseñas nuevas no coinciden");
+    return false;
+  }
+  const resp = await fetch("/api/auth/cambiar-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      password_actual: document.getElementById("pass-actual").value,
+      password_nueva: nueva,
+    }),
+  });
+  if (!resp.ok) {
+    const cuerpo = await resp.json().catch(() => ({}));
+    alert(cuerpo.detail || "No se pudo cambiar la contraseña");
+    return false;
+  }
+  cerrarCambioPassword();
+  alert("✅ Contraseña actualizada");
+  return false;
 }
 
 // ---------- notificaciones de escritorio ----------

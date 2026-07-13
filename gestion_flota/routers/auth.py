@@ -1,13 +1,14 @@
 """Endpoints de registro, login y logout (sin verificación por email)."""
 
+import os
 import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlmodel import Session, select
 
 from ..database import get_session
-from ..models import Sesion, Usuario
-from ..schemas import Credenciales, UsuarioRead
+from ..models import Chofer, RolUsuario, Sesion, Usuario
+from ..schemas import CambioPassword, Credenciales, UsuarioRead
 from ..seguridad import (
     COOKIE_SESION,
     hashear_password,
@@ -58,11 +59,55 @@ def registrarse(
     Returns:
         Usuario: el usuario creado.
     """
+    codigo_admin = os.getenv("CODIGO_REGISTRO")
+    # Reason: si no se define CODIGO_CHOFER, los choferes usan el mismo
+    # código general de la empresa.
+    codigo_chofer = os.getenv("CODIGO_CHOFER") or codigo_admin
+
+    rol = RolUsuario.CHOFER if datos.email_chofer else RolUsuario.ADMIN
+    codigo_requerido = codigo_chofer if rol == RolUsuario.CHOFER else codigo_admin
+    if codigo_requerido and datos.codigo != codigo_requerido:
+        raise HTTPException(
+            status_code=403,
+            detail="Código de empresa incorrecto. Pedíselo al responsable de transporte.",
+        )
+
+    chofer_id = None
+    if rol == RolUsuario.CHOFER:
+        email = datos.email_chofer.strip().lower()
+        chofer = next(
+            (
+                c
+                for c in session.exec(select(Chofer)).all()
+                if c.email and c.email.strip().lower() == email
+            ),
+            None,
+        )
+        if chofer is None:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    "No hay ningún chofer con ese email. Pedile al responsable "
+                    "que cargue tu email en tu perfil primero."
+                ),
+            )
+        ya_vinculado = session.exec(
+            select(Usuario).where(Usuario.chofer_id == chofer.id)
+        ).first()
+        if ya_vinculado is not None:
+            raise HTTPException(status_code=409, detail="Ese chofer ya tiene cuenta")
+        chofer_id = chofer.id
+
     username = datos.username.strip().lower()
     existente = session.exec(select(Usuario).where(Usuario.username == username)).first()
     if existente is not None:
         raise HTTPException(status_code=409, detail="Ese nombre de usuario ya existe")
-    usuario = Usuario(username=username, password_hash=hashear_password(datos.password))
+    usuario = Usuario(
+        username=username,
+        password_hash=hashear_password(datos.password),
+        rol=rol,
+        chofer_id=chofer_id,
+    )
     session.add(usuario)
     session.commit()
     session.refresh(usuario)
@@ -108,6 +153,31 @@ def salir(
             session.delete(sesion)
             session.commit()
     response.delete_cookie(COOKIE_SESION)
+
+
+@router.post("/cambiar-password", status_code=204)
+def cambiar_password(
+    datos: CambioPassword,
+    session: Session = Depends(get_session),
+    usuario: Usuario = Depends(usuario_actual),
+) -> None:
+    """
+    Cambia la contraseña de la cuenta logueada.
+
+    Args:
+        datos (CambioPassword): contraseña actual y nueva.
+
+    Returns:
+        None
+
+    Raises:
+        HTTPException: 401 si la contraseña actual no es correcta.
+    """
+    if not verificar_password(datos.password_actual, usuario.password_hash):
+        raise HTTPException(status_code=401, detail="La contraseña actual no es correcta")
+    usuario.password_hash = hashear_password(datos.password_nueva)
+    session.add(usuario)
+    session.commit()
 
 
 @router.get("/yo", response_model=UsuarioRead)

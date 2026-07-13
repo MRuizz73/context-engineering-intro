@@ -17,6 +17,14 @@
       <form id="form-login" onsubmit="return enviarLogin(event)">
         <label>Usuario <input id="login-usuario" required autocomplete="username"></label>
         <label>Contraseña <input id="login-password" type="password" required minlength="6" autocomplete="current-password"></label>
+        <label id="campo-tipo" class="oculta">Tipo de cuenta
+          <select id="login-tipo" onchange="cambioTipoCuenta()">
+            <option value="admin">Responsable de transporte (ve todo)</option>
+            <option value="chofer">Chofer (ve solo lo suyo)</option>
+          </select>
+        </label>
+        <label id="campo-email-chofer" class="oculta">Tu email de chofer <input id="login-email-chofer" type="email" placeholder="El que cargó el responsable en tu perfil"></label>
+        <label id="campo-codigo" class="oculta">Código de la empresa <input id="login-codigo" placeholder="Te lo da el responsable"></label>
         <button type="submit" class="btn-marca" id="btn-login">Ingresar</button>
         <p class="error-login" id="error-login"></p>
         <p class="alternar-login" id="alternar-login">
@@ -30,6 +38,7 @@
     <div class="barra-usuario">
       <span id="usuario-actual"></span>
       <button class="btn-chico" onclick="activarAvisos()" id="btn-avisos">🔔 Activar avisos</button>
+      <button class="btn-chico" onclick="abrirCambioPassword()">🔑 Contraseña</button>
       <button class="btn-chico" onclick="cerrarSesion()">Salir</button>
     </div>
     <h1>⛽ Gestión de Flota</h1>
@@ -38,6 +47,7 @@
       <button class="tab activa" data-vista="vencimientos">🔔 Vencimientos</button>
       <button class="tab" data-vista="choferes">👷 Choferes</button>
       <button class="tab" data-vista="camiones">🚛 Camiones</button>
+      <button class="tab oculta" id="tab-perfil" onclick="abrirMiPerfil(this)">👤 Mi perfil</button>
     </nav>
   </header>
 
@@ -46,7 +56,7 @@
     <section id="vista-vencimientos" class="vista">
       <div class="barra">
         <h2>Recordatorios de renovación</h2>
-        <button class="btn-primario" onclick="enviarRecordatorios(this)">📧 Enviar recordatorios por email</button>
+        <button class="btn-primario" id="btn-enviar-avisos" onclick="enviarRecordatorios(this)">📧 Enviar recordatorios por email</button>
       </div>
       <p class="ayuda">
         Documentos vencidos o dentro de su ventana de aviso. La alerta permanece
@@ -74,6 +84,10 @@
           <label>Email (recibe los recordatorios) <input id="chofer-email" type="email" required placeholder="chofer@email.com"></label>
           <label class="check"><input id="chofer-activo" type="checkbox" checked> Activo</label>
         </div>
+        <label class="check" id="campo-generar-cuenta">
+          <input id="chofer-generar-cuenta" type="checkbox" checked>
+          🔐 Generar también su cuenta de acceso (usuario y contraseña para el chofer)
+        </label>
         <div class="acciones">
           <button type="submit" class="btn-primario">Guardar</button>
           <button type="button" onclick="cerrarForms()">Cancelar</button>
@@ -84,7 +98,7 @@
 
     <!-- Vista: Perfil del chofer -->
     <section id="vista-perfil" class="vista oculta">
-      <button class="btn-chico" onclick="volverAChoferes()">← Volver a choferes</button>
+      <button class="btn-chico" id="btn-volver-choferes" onclick="volverAChoferes()">← Volver a choferes</button>
       <h2 id="perfil-titulo"></h2>
 
       <div class="tarjeta">
@@ -212,6 +226,38 @@
       <div class="acciones">
         <button type="submit" class="btn-marca">✔ Confirmar renovación</button>
         <button type="button" onclick="cerrarRenovar()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal de credenciales generadas -->
+  <div id="modal-credenciales" class="modal oculta">
+    <div class="tarjeta modal-contenido">
+      <h3>🔐 Cuenta creada — entregar al chofer</h3>
+      <p class="ayuda">Anotá estos datos AHORA: la contraseña no se vuelve a mostrar. El chofer puede cambiarla después con el botón 🔑.</p>
+      <div class="fila">
+        <label>Usuario <input id="cred-usuario" readonly onclick="this.select()"></label>
+        <label>Contraseña <input id="cred-password" readonly onclick="this.select()"></label>
+      </div>
+      <div class="acciones">
+        <button type="button" class="btn-primario" onclick="copiarCredenciales()">📋 Copiar</button>
+        <button type="button" onclick="document.getElementById('modal-credenciales').classList.add('oculta')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de cambio de contraseña -->
+  <div id="modal-password" class="modal oculta">
+    <form class="tarjeta modal-contenido" onsubmit="return cambiarPassword(event)">
+      <h3>🔑 Cambiar mi contraseña</h3>
+      <div class="fila">
+        <label>Contraseña actual <input id="pass-actual" type="password" required></label>
+        <label>Contraseña nueva (mín. 6) <input id="pass-nueva" type="password" required minlength="6"></label>
+        <label>Repetir la nueva <input id="pass-repetir" type="password" required minlength="6"></label>
+      </div>
+      <div class="acciones">
+        <button type="submit" class="btn-primario">Guardar contraseña</button>
+        <button type="button" onclick="cerrarCambioPassword()">Cancelar</button>
       </div>
     </form>
   </div>

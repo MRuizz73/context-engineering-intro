@@ -9,9 +9,16 @@ La interfaz usa la identidad visual de la empresa (Manual de Uso iR): verde
 
 ## Funcionalidades
 
-- **Login y registro**: cuentas con usuario y contraseña (sin verificación
-  por email). Los datos de la flota solo se ven con sesión iniciada; la
-  sesión dura 30 días.
+- **Login con roles**: las cuentas de **responsable (admin)** ven y editan
+  todo; las cuentas de **chofer** ven solo sus propios cursos, alertas y
+  perfil (y pueden añadir cursos y confirmar renovaciones de lo suyo).
+  Sesión de 30 días; contraseña cambiable con el botón 🔑.
+- **Cuentas de choferes**: el admin puede generar la cuenta de cada chofer
+  con el botón *🔐 Cuenta* (o al crear el chofer): usuario y contraseña
+  seguros que se entregan al chofer una sola vez. En el primer arranque se
+  crean las cuentas de `gestion_flota/cuentas_iniciales.csv` (borrar ese
+  archivo tras repartir las claves). Alternativa: los choferes se registran
+  solos con el código de la empresa + su email de perfil.
 - **Notificaciones de escritorio**: con el botón *🔔 Activar avisos* el
   navegador pide permiso y luego avisa en el ordenador cuando hay cursos o
   permisos vencidos o por vencer (revisa cada hora y avisa una vez por día
@@ -70,6 +77,13 @@ empresa. Para Gmail: `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587` y una
 Seguridad → Verificación en dos pasos → Contraseñas de aplicaciones).
 Sin esta configuración la app funciona igual, pero el envío de emails
 devuelve un error explicativo.
+
+## Ponerla en internet (choferes y responsables)
+
+Ver la guía completa en [`DESPLIEGUE.md`](DESPLIEGUE.md): VPS con Docker y
+HTTPS (recomendado), red de oficina, Tailscale o PaaS. Antes de exponerla,
+definir `CODIGO_REGISTRO` en `.env`: crear cuenta pasa a exigir el código
+interno de la empresa.
 
 ## Tests
 

@@ -7,7 +7,7 @@ from fastapi import Depends, HTTPException, Request
 from sqlmodel import Session
 
 from .database import get_session
-from .models import Sesion, Usuario
+from .models import RolUsuario, Sesion, Usuario
 
 # Reason: PBKDF2 viene en la biblioteca estándar; evita sumar dependencias
 # de terceros para un login sencillo sin verificación por email.
@@ -78,4 +78,24 @@ def usuario_actual(
     usuario = session.get(Usuario, sesion.usuario_id)
     if usuario is None:
         raise HTTPException(status_code=401, detail="Usuario inexistente")
+    return usuario
+
+
+def requiere_admin(usuario: Usuario = Depends(usuario_actual)) -> Usuario:
+    """
+    Exige que el usuario logueado tenga rol de administrador.
+
+    Args:
+        usuario (Usuario): usuario autenticado.
+
+    Returns:
+        Usuario: el mismo usuario, si es admin.
+
+    Raises:
+        HTTPException: 403 si la cuenta es de chofer.
+    """
+    if usuario.rol != RolUsuario.ADMIN:
+        raise HTTPException(
+            status_code=403, detail="Solo el responsable de transporte puede hacer esto"
+        )
     return usuario

@@ -26,12 +26,23 @@ class EstadoDocumento(str, Enum):
     VENCIDO = "vencido"
 
 
+class RolUsuario(str, Enum):
+    """Rol de la cuenta: admin ve todo, chofer solo lo suyo."""
+
+    ADMIN = "admin"
+    CHOFER = "chofer"
+
+
 class Usuario(SQLModel, table=True):
     """Usuario de la aplicación (login sin verificación por email)."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
     username: str = Field(index=True, unique=True)
     password_hash: str
+    rol: RolUsuario = Field(default=RolUsuario.ADMIN)
+    # Reason: una cuenta de chofer queda ligada a su perfil para que solo
+    # pueda ver y cargar sus propios cursos/permisos.
+    chofer_id: Optional[int] = Field(default=None, foreign_key="chofer.id")
 
 
 class Sesion(SQLModel, table=True):

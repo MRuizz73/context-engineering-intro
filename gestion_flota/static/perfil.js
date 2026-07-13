@@ -23,6 +23,10 @@ async function abrirPerfil(choferId) {
   document.getElementById("form-cuestionario").reset();
   document.getElementById("cuest-aviso").value = 30;
 
+  // Un chofer no tiene listado de choferes al que volver.
+  document.getElementById("btn-volver-choferes")
+    .classList.toggle("oculta", window.esAdmin === false);
+
   document.querySelectorAll(".vista").forEach((v) => v.classList.add("oculta"));
   document.getElementById("vista-perfil").classList.remove("oculta");
   window.scrollTo(0, 0);

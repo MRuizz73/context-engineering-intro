@@ -29,6 +29,13 @@
   (AUTO_IMPORTAR=0 la desactiva). Perfil del chofer con cuestionario para
   añadir cursos/permisos. 34 tests pasando.
 
+- [x] **2026-07-13** — Roles y despliegue: rol admin (ve todo) vs rol chofer
+  (ve/gestiona solo lo suyo); cuentas iniciales generadas (admin + 15
+  choferes, Excel entregado); generador de cuentas de chofer para el admin;
+  cambio de contraseña propio (botón 🔑); código de registro de empresa
+  (CODIGO_REGISTRO/CODIGO_CHOFER); Dockerfile + docker-compose + guía
+  DESPLIEGUE.md. 42 tests pasando.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.

@@ -8,11 +8,28 @@ from sqlmodel import Session, select
 
 from .. import correo
 from ..database import get_session
-from ..models import Camion, Chofer, Documento, EstadoDocumento
+from ..models import Camion, Chofer, Documento, EstadoDocumento, RolUsuario, Usuario
 from ..schemas import DocumentoCreate, DocumentoRead, RenovacionDocumento
+from ..seguridad import requiere_admin, usuario_actual
 from ..serializers import documento_a_read
 
 router = APIRouter(prefix="/api", tags=["documentos"])
+
+
+def _filtrar_por_rol(docs: List[Documento], usuario: Usuario) -> List[Documento]:
+    """
+    Restringe la lista a los documentos del chofer si la cuenta no es admin.
+
+    Args:
+        docs (List[Documento]): documentos a filtrar.
+        usuario (Usuario): usuario autenticado.
+
+    Returns:
+        List[Documento]: todos para el admin; solo los propios para un chofer.
+    """
+    if usuario.rol == RolUsuario.ADMIN:
+        return docs
+    return [d for d in docs if d.chofer_id == usuario.chofer_id]
 
 
 def _validar_titular(session: Session, datos: DocumentoCreate) -> None:
@@ -36,9 +53,10 @@ def _validar_titular(session: Session, datos: DocumentoCreate) -> None:
 def listar_documentos(
     estado: Optional[EstadoDocumento] = Query(default=None),
     session: Session = Depends(get_session),
+    usuario: Usuario = Depends(usuario_actual),
 ) -> List[DocumentoRead]:
     """
-    Lista todos los documentos, opcionalmente filtrados por estado.
+    Lista los documentos visibles para el usuario (un chofer ve solo los suyos).
 
     Args:
         estado (EstadoDocumento | None): filtro opcional (vigente/por_vencer/vencido).
@@ -47,34 +65,41 @@ def listar_documentos(
         List[DocumentoRead]: documentos ordenados por fecha de vencimiento.
     """
     docs = session.exec(select(Documento).order_by(Documento.fecha_vencimiento)).all()
-    leidos = [documento_a_read(d) for d in docs]
+    leidos = [documento_a_read(d) for d in _filtrar_por_rol(docs, usuario)]
     if estado is not None:
         leidos = [d for d in leidos if d.estado == estado]
     return leidos
 
 
 @router.get("/vencimientos", response_model=List[DocumentoRead])
-def proximos_vencimientos(session: Session = Depends(get_session)) -> List[DocumentoRead]:
+def proximos_vencimientos(
+    session: Session = Depends(get_session),
+    usuario: Usuario = Depends(usuario_actual),
+) -> List[DocumentoRead]:
     """
-    Devuelve los recordatorios activos: documentos vencidos o por vencer.
+    Devuelve los recordatorios activos visibles para el usuario.
 
     Un documento entra en la lista cuando quedan `dias_aviso` días o menos
-    para su vencimiento (o ya venció).
+    para su vencimiento (o ya venció). Un chofer solo ve sus propias alertas.
 
     Returns:
         List[DocumentoRead]: alertas ordenadas de más urgente a menos urgente.
     """
     docs = session.exec(select(Documento).order_by(Documento.fecha_vencimiento)).all()
-    leidos = [documento_a_read(d) for d in docs]
+    leidos = [documento_a_read(d) for d in _filtrar_por_rol(docs, usuario)]
     return [d for d in leidos if d.estado != EstadoDocumento.VIGENTE]
 
 
 @router.post("/documentos", response_model=DocumentoRead, status_code=201)
 def crear_documento(
-    datos: DocumentoCreate, session: Session = Depends(get_session)
+    datos: DocumentoCreate,
+    session: Session = Depends(get_session),
+    usuario: Usuario = Depends(usuario_actual),
 ) -> DocumentoRead:
     """
     Crea un documento asociado a un chofer o a un camión.
+
+    Un chofer solo puede añadir documentos a su propio perfil.
 
     Args:
         datos (DocumentoCreate): datos del documento.
@@ -82,6 +107,10 @@ def crear_documento(
     Returns:
         DocumentoRead: el documento creado con su estado.
     """
+    if usuario.rol != RolUsuario.ADMIN and datos.chofer_id != usuario.chofer_id:
+        raise HTTPException(
+            status_code=403, detail="Solo podés añadir cursos a tu propio perfil"
+        )
     _validar_titular(session, datos)
     doc = Documento(**datos.model_dump())
     session.add(doc)
@@ -90,7 +119,11 @@ def crear_documento(
     return documento_a_read(doc)
 
 
-@router.put("/documentos/{documento_id}", response_model=DocumentoRead)
+@router.put(
+    "/documentos/{documento_id}",
+    response_model=DocumentoRead,
+    dependencies=[Depends(requiere_admin)],
+)
 def actualizar_documento(
     documento_id: int, datos: DocumentoCreate, session: Session = Depends(get_session)
 ) -> DocumentoRead:
@@ -121,12 +154,14 @@ def renovar_documento(
     documento_id: int,
     datos: RenovacionDocumento,
     session: Session = Depends(get_session),
+    usuario: Usuario = Depends(usuario_actual),
 ) -> DocumentoRead:
     """
     Marca un documento como renovado: nueva vigencia y alerta despejada.
 
     La alerta de un documento vencido/por vencer permanece activa hasta que
-    se confirma la renovación por este endpoint con la nueva fecha.
+    se confirma la renovación por este endpoint con la nueva fecha. Un
+    chofer solo puede renovar sus propios documentos.
 
     Args:
         documento_id (int): id del documento renovado.
@@ -138,6 +173,10 @@ def renovar_documento(
     doc = session.get(Documento, documento_id)
     if doc is None:
         raise HTTPException(status_code=404, detail="Documento no encontrado")
+    if usuario.rol != RolUsuario.ADMIN and doc.chofer_id != usuario.chofer_id:
+        raise HTTPException(
+            status_code=403, detail="Solo podés renovar tus propios documentos"
+        )
     if datos.fecha_vencimiento <= date.today():
         raise HTTPException(
             status_code=422,
@@ -152,7 +191,7 @@ def renovar_documento(
     return documento_a_read(doc)
 
 
-@router.post("/avisos/enviar")
+@router.post("/avisos/enviar", dependencies=[Depends(requiere_admin)])
 def enviar_avisos(session: Session = Depends(get_session)) -> dict:
     """
     Envía ahora los recordatorios por email con el correo de la empresa.
@@ -177,7 +216,9 @@ def enviar_avisos(session: Session = Depends(get_session)) -> dict:
         raise HTTPException(status_code=502, detail=f"Error al enviar emails: {exc}")
 
 
-@router.delete("/documentos/{documento_id}", status_code=204)
+@router.delete(
+    "/documentos/{documento_id}", status_code=204, dependencies=[Depends(requiere_admin)]
+)
 def eliminar_documento(documento_id: int, session: Session = Depends(get_session)) -> None:
     """
     Elimina un documento.

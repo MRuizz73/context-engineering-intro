@@ -11,14 +11,15 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
 
-from . import correo, importar_csv
+from . import correo, cuentas, importar_csv
 from .database import engine, init_db
-from .models import Camion, Chofer, Documento
+from .models import Camion, Chofer, Documento, Usuario
 from .routers import auth, camiones, choferes, documentos
-from .seguridad import usuario_actual
+from .seguridad import requiere_admin, usuario_actual
 
 STATIC_DIR = Path(__file__).parent / "static"
 DATOS_INICIALES = Path(__file__).parent / "datos_iniciales.csv"
+CUENTAS_INICIALES = Path(__file__).parent / "cuentas_iniciales.csv"
 INTERVALO_AVISOS_SEGUNDOS = 12 * 60 * 60
 logger = logging.getLogger("gestion_flota")
 
@@ -65,6 +66,10 @@ def _sembrar_datos_iniciales() -> None:
         if vacia:
             resumen = importar_csv.importar(session, DATOS_INICIALES)
             logger.info("Datos iniciales importados: %s", resumen)
+        sin_usuarios = session.exec(select(Usuario)).first() is None
+        if sin_usuarios and CUENTAS_INICIALES.exists():
+            resumen_cuentas = cuentas.crear_cuentas_desde_csv(session, CUENTAS_INICIALES)
+            logger.info("Cuentas iniciales creadas: %s", resumen_cuentas)
 
 
 @asynccontextmanager
@@ -93,10 +98,11 @@ app = FastAPI(
 
 app.include_router(auth.router)
 
-# Reason: los datos de la flota solo son visibles con sesión iniciada.
+# Reason: los datos de la flota solo son visibles con sesión iniciada;
+# los camiones son exclusivos del rol admin (los choferes ven solo lo suyo).
 protegido = [Depends(usuario_actual)]
 app.include_router(choferes.router, dependencies=protegido)
-app.include_router(camiones.router, dependencies=protegido)
+app.include_router(camiones.router, dependencies=[Depends(requiere_admin)])
 app.include_router(documentos.router, dependencies=protegido)
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

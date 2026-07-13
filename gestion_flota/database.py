@@ -26,6 +26,13 @@ def init_db() -> None:
     _migrar_columnas()
 
 
+# Columnas agregadas después de la primera versión: tabla → (columna, tipo).
+_MIGRACIONES = {
+    "documento": [("ultimo_aviso_email", "DATE")],
+    "usuario": [("rol", "VARCHAR DEFAULT 'admin'"), ("chofer_id", "INTEGER")],
+}
+
+
 def _migrar_columnas() -> None:
     """
     Agrega columnas nuevas a tablas existentes (SQLite no las crea solo).
@@ -36,13 +43,17 @@ def _migrar_columnas() -> None:
     from sqlalchemy import text
 
     with engine.connect() as conn:
-        columnas = [
-            fila[1]
-            for fila in conn.execute(text("PRAGMA table_info(documento)")).fetchall()
-        ]
-        if columnas and "ultimo_aviso_email" not in columnas:
-            conn.execute(text("ALTER TABLE documento ADD COLUMN ultimo_aviso_email DATE"))
-            conn.commit()
+        for tabla, columnas_nuevas in _MIGRACIONES.items():
+            existentes = [
+                fila[1]
+                for fila in conn.execute(text(f"PRAGMA table_info({tabla})")).fetchall()
+            ]
+            for columna, tipo in columnas_nuevas:
+                if existentes and columna not in existentes:
+                    conn.execute(
+                        text(f"ALTER TABLE {tabla} ADD COLUMN {columna} {tipo}")
+                    )
+        conn.commit()
 
 
 def get_session():
