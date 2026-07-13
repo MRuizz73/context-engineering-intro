@@ -1,5 +1,11 @@
 """Fixtures compartidas: app de prueba con base SQLite en memoria."""
 
+import os
+
+# Reason: los tests no deben sembrar los datos iniciales del CSV en la base
+# real al levantar la app de prueba.
+os.environ["AUTO_IMPORTAR"] = "0"
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine

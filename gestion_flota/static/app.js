@@ -215,10 +215,11 @@ async function cargarChoferes() {
       <div class="tarjeta">
         <div class="item-cabecera">
           <div>
-            <strong>${esc(c.apellido)}, ${esc(c.nombre)}</strong>
+            <strong><a class="enlace-perfil" onclick="abrirPerfil(${c.id})">${esc(c.apellido)}, ${esc(c.nombre)}</a></strong>
             ${c.activo ? "" : '<span class="badge inactivo">Inactivo</span>'}
           </div>
           <div class="acciones" style="margin:0">
+            <button class="btn-chico btn-marca" onclick="abrirPerfil(${c.id})">👤 Ver perfil</button>
             <button class="btn-chico btn-primario" onclick="abrirFormDoc(null, 'chofer', ${c.id}, '${esc(c.apellido)}, ${esc(c.nombre)}')">+ Curso/Permiso</button>
             <button class="btn-chico" onclick='editarChofer(${JSON.stringify(JSON.stringify(c))})'>Editar</button>
             <button class="btn-chico btn-peligro" onclick="borrarChofer(${c.id})">Borrar</button>
@@ -433,6 +434,7 @@ function cargarTodo() {
   cargarVencimientos();
   cargarChoferes();
   cargarCamiones();
+  if (window.refrescarPerfilSiAbierto) refrescarPerfilSiAbierto();
 }
 
 inicializarAuth();

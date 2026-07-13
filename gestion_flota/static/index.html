@@ -82,6 +82,62 @@
       <div id="lista-choferes"></div>
     </section>
 
+    <!-- Vista: Perfil del chofer -->
+    <section id="vista-perfil" class="vista oculta">
+      <button class="btn-chico" onclick="volverAChoferes()">← Volver a choferes</button>
+      <h2 id="perfil-titulo"></h2>
+
+      <div class="tarjeta">
+        <h3>👤 Datos del perfil</h3>
+        <p class="ayuda">Completá el perfil: el email es donde llegan los recordatorios.</p>
+        <form id="form-perfil" onsubmit="return guardarPerfil(event)">
+          <div class="fila">
+            <label>Nombre <input id="perfil-nombre" required></label>
+            <label>Apellido <input id="perfil-apellido" required></label>
+            <label>DNI <input id="perfil-dni" required></label>
+          </div>
+          <div class="fila">
+            <label>Teléfono <input id="perfil-telefono"></label>
+            <label>Email (recibe los recordatorios) <input id="perfil-email" type="email" required placeholder="chofer@email.com"></label>
+            <label class="check"><input id="perfil-activo" type="checkbox"> Activo</label>
+          </div>
+          <div class="acciones">
+            <button type="submit" class="btn-primario">Guardar perfil</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="tarjeta cuestionario">
+        <h3>📋 Añadir curso/permiso al perfil</h3>
+        <p class="ayuda">Cuestionario para registrar un curso o permiso nuevo de este chofer.</p>
+        <form id="form-cuestionario" onsubmit="return enviarCuestionario(event)">
+          <div class="fila">
+            <label>1. ¿Qué curso/permiso es? <input id="cuest-nombre" required placeholder="Ej: Curso cargas peligrosas (ADR)"></label>
+            <label>2. ¿Qué tipo es?
+              <select id="cuest-tipo">
+                <option value="curso">Curso</option>
+                <option value="permiso">Permiso</option>
+                <option value="licencia">Licencia</option>
+                <option value="otro">Otro (certificado, DNI...)</option>
+              </select>
+            </label>
+          </div>
+          <div class="fila">
+            <label>3. ¿Cuándo lo obtuvo? <input id="cuest-emision" type="date"></label>
+            <label>4. ¿Cuándo caduca? <input id="cuest-vencimiento" type="date" required></label>
+            <label>5. ¿Con cuántos días de antelación avisar? <input id="cuest-aviso" type="number" min="0" value="30" required></label>
+          </div>
+          <label>6. Observaciones <textarea id="cuest-notas" rows="2" placeholder="Opcional"></textarea></label>
+          <div class="acciones">
+            <button type="submit" class="btn-marca">➕ Añadir al perfil</button>
+          </div>
+        </form>
+      </div>
+
+      <h3>Cursos y permisos de este chofer</h3>
+      <div id="perfil-documentos"></div>
+    </section>
+
     <!-- Vista: Camiones -->
     <section id="vista-camiones" class="vista oculta">
       <div class="barra">
@@ -162,5 +218,6 @@
 
   <script src="/static/auth.js"></script>
   <script src="/static/app.js"></script>
+  <script src="/static/perfil.js"></script>
 </body>
 </html>

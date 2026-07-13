@@ -21,6 +21,14 @@
   forma de quitar la alerta (pide la nueva fecha de vencimiento).
   29 tests pasando; verificado con servidor SMTP local real.
 
+- [x] **2026-07-13** — Importador del CSV real de la empresa
+  (`gestion_flota/importar_csv.py` + `datos_iniciales.csv`): crea 15
+  choferes, 51 camiones (por matrícula) y 234 documentos, unificando
+  variantes de nombres y deduplicando citas repetidas (la próxima fecha va
+  al documento, el resto a notas). Siembra automática al primer arranque
+  (AUTO_IMPORTAR=0 la desactiva). Perfil del chofer con cuestionario para
+  añadir cursos/permisos. 34 tests pasando.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.

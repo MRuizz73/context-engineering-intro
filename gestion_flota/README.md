@@ -17,6 +17,16 @@ La interfaz usa la identidad visual de la empresa (Manual de Uso iR): verde
   permisos vencidos o por vencer (revisa cada hora y avisa una vez por día
   por documento).
 - **Choferes**: alta, edición y baja, con DNI único, teléfono y email.
+- **Perfil del chofer**: haciendo clic en un chofer (o en *👤 Ver perfil*) se
+  abre su perfil con sus datos para completar (email de recordatorios) y un
+  **cuestionario para añadir cursos/permisos** nuevos a ese perfil.
+- **Datos iniciales**: al arrancar por primera vez con la base vacía, la app
+  importa automáticamente `gestion_flota/datos_iniciales.csv` (calendario de
+  cursos y vencimientos de la empresa): crea los choferes, los camiones por
+  matrícula y todos los documentos. También se puede importar a mano:
+  `python -m gestion_flota.importar_csv archivo.csv` (desactivable con
+  `AUTO_IMPORTAR=0`). Los choferes importados quedan con DNI provisorio
+  (`PTE-…`) y sin email: completalos desde su perfil.
 - **Camiones**: alta, edición y baja, con patente única, marca, modelo y año.
 - **Documentos** (cursos, permisos, licencias, seguros, revisión técnica):
   se asignan a un chofer o a un camión, con fecha de vencimiento y una
