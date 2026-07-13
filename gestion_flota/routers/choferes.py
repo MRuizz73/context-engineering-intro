@@ -27,7 +27,7 @@ def _verificar_acceso(usuario: Usuario, chofer_id: int) -> None:
         HTTPException: 403 si un chofer intenta ver un perfil ajeno.
     """
     if usuario.rol != RolUsuario.ADMIN and usuario.chofer_id != chofer_id:
-        raise HTTPException(status_code=403, detail="Solo podés ver tu propio perfil")
+        raise HTTPException(status_code=403, detail="Solo puedes ver tu propio perfil")
 
 
 def _obtener_chofer(session: Session, chofer_id: int) -> Chofer:
@@ -43,7 +43,7 @@ def _obtener_chofer(session: Session, chofer_id: int) -> Chofer:
     """
     chofer = session.get(Chofer, chofer_id)
     if chofer is None:
-        raise HTTPException(status_code=404, detail="Chofer no encontrado")
+        raise HTTPException(status_code=404, detail="Chófer no encontrado")
     return chofer
 
 
@@ -74,7 +74,7 @@ def crear_chofer(datos: ChoferCreate, session: Session = Depends(get_session)) -
     """
     existente = session.exec(select(Chofer).where(Chofer.dni == datos.dni)).first()
     if existente is not None:
-        raise HTTPException(status_code=409, detail="Ya existe un chofer con ese DNI")
+        raise HTTPException(status_code=409, detail="Ya existe un chófer con ese DNI")
     chofer = Chofer(**datos.model_dump())
     session.add(chofer)
     session.commit()

@@ -79,7 +79,7 @@ function cerrarForms() {
 // ---------- vencimientos ----------
 
 async function cargarVencimientos() {
-  const alertas = await api("/api/vencimientos");
+  const alertas = await api("api/vencimientos");
   const cont = document.getElementById("lista-vencimientos");
   if (alertas.length === 0) {
     cont.innerHTML = '<div class="vacio">✅ No hay vencimientos pendientes. Todo al día.</div>';
@@ -124,7 +124,7 @@ async function enviarRecordatorios(boton) {
   boton.disabled = true;
   boton.textContent = "Enviando…";
   try {
-    const resumen = await api("/api/avisos/enviar", { method: "POST" });
+    const resumen = await api("api/avisos/enviar", { method: "POST" });
     const detalle =
       resumen.documentos_avisados === 0
         ? "No había avisos pendientes de enviar (ya se avisaron o no hay vencimientos)."
@@ -158,7 +158,7 @@ function cerrarRenovar() {
 async function confirmarRenovacion(evento) {
   evento.preventDefault();
   const id = document.getElementById("renovar-id").value;
-  await api(`/api/documentos/${id}/renovar`, {
+  await api(`api/documentos/${id}/renovar`, {
     method: "POST",
     body: JSON.stringify({
       fecha_vencimiento: document.getElementById("renovar-vencimiento").value,
@@ -204,7 +204,7 @@ function tablaDocumentos(docs, tipoTitular, titularId) {
 // ---------- choferes ----------
 
 async function cargarChoferes() {
-  const choferes = await api("/api/choferes");
+  const choferes = await api("api/choferes");
   const cont = document.getElementById("lista-choferes");
   if (choferes.length === 0) {
     cont.innerHTML = '<div class="vacio">Todavía no hay chóferes. Crea el primero con "+ Nuevo chófer".</div>';
@@ -273,9 +273,9 @@ async function guardarChofer(evento) {
     activo: document.getElementById("chofer-activo").checked,
   };
   if (id) {
-    await api(`/api/choferes/${id}`, { method: "PUT", body: JSON.stringify(datos) });
+    await api(`api/choferes/${id}`, { method: "PUT", body: JSON.stringify(datos) });
   } else {
-    const nuevo = await api("/api/choferes", { method: "POST", body: JSON.stringify(datos) });
+    const nuevo = await api("api/choferes", { method: "POST", body: JSON.stringify(datos) });
     if (document.getElementById("chofer-generar-cuenta").checked) {
       await generarCuentaChofer(nuevo.id);
     }
@@ -286,7 +286,7 @@ async function guardarChofer(evento) {
 }
 
 async function generarCuentaChofer(choferId) {
-  const cred = await api(`/api/choferes/${choferId}/crear-cuenta`, { method: "POST" });
+  const cred = await api(`api/choferes/${choferId}/crear-cuenta`, { method: "POST" });
   document.getElementById("cred-usuario").value = cred.username;
   document.getElementById("cred-password").value = cred.password;
   document.getElementById("modal-credenciales").classList.remove("oculta");
@@ -304,14 +304,14 @@ async function copiarCredenciales() {
 
 async function borrarChofer(id) {
   if (!confirm("¿Eliminar este chófer y todos sus documentos?")) return;
-  await api(`/api/choferes/${id}`, { method: "DELETE" });
+  await api(`api/choferes/${id}`, { method: "DELETE" });
   cargarTodo();
 }
 
 // ---------- camiones ----------
 
 async function cargarCamiones() {
-  const camiones = await api("/api/camiones");
+  const camiones = await api("api/camiones");
   const cont = document.getElementById("lista-camiones");
   if (camiones.length === 0) {
     cont.innerHTML = '<div class="vacio">Todavía no hay camiones. Crea el primero con "+ Nuevo camión".</div>';
@@ -376,9 +376,9 @@ async function guardarCamion(evento) {
     activo: document.getElementById("camion-activo").checked,
   };
   if (id) {
-    await api(`/api/camiones/${id}`, { method: "PUT", body: JSON.stringify(datos) });
+    await api(`api/camiones/${id}`, { method: "PUT", body: JSON.stringify(datos) });
   } else {
-    await api("/api/camiones", { method: "POST", body: JSON.stringify(datos) });
+    await api("api/camiones", { method: "POST", body: JSON.stringify(datos) });
   }
   cerrarForms();
   cargarTodo();
@@ -387,7 +387,7 @@ async function guardarCamion(evento) {
 
 async function borrarCamion(id) {
   if (!confirm("¿Eliminar este camión y todos sus documentos?")) return;
-  await api(`/api/camiones/${id}`, { method: "DELETE" });
+  await api(`api/camiones/${id}`, { method: "DELETE" });
   cargarTodo();
 }
 
@@ -435,9 +435,9 @@ async function guardarDocumento(evento) {
     camion_id: camionId ? parseInt(camionId, 10) : null,
   };
   if (id) {
-    await api(`/api/documentos/${id}`, { method: "PUT", body: JSON.stringify(datos) });
+    await api(`api/documentos/${id}`, { method: "PUT", body: JSON.stringify(datos) });
   } else {
-    await api("/api/documentos", { method: "POST", body: JSON.stringify(datos) });
+    await api("api/documentos", { method: "POST", body: JSON.stringify(datos) });
   }
   cerrarModal();
   cargarTodo();
@@ -446,7 +446,7 @@ async function guardarDocumento(evento) {
 
 async function borrarDocumento(id) {
   if (!confirm("¿Eliminar este documento?")) return;
-  await api(`/api/documentos/${id}`, { method: "DELETE" });
+  await api(`api/documentos/${id}`, { method: "DELETE" });
   cargarTodo();
 }
 

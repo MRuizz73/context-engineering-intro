@@ -44,7 +44,7 @@ def _validar_titular(session: Session, datos: DocumentoCreate) -> None:
         HTTPException: 404 si el titular no existe.
     """
     if datos.chofer_id is not None and session.get(Chofer, datos.chofer_id) is None:
-        raise HTTPException(status_code=404, detail="Chofer no encontrado")
+        raise HTTPException(status_code=404, detail="Chófer no encontrado")
     if datos.camion_id is not None and session.get(Camion, datos.camion_id) is None:
         raise HTTPException(status_code=404, detail="Camión no encontrado")
 
@@ -97,7 +97,7 @@ def crear_documento(
     usuario: Usuario = Depends(usuario_actual),
 ) -> DocumentoRead:
     """
-    Crea un documento asociado a un chofer o a un camión.
+    Crea un documento asociado a un chófer o a un camión.
 
     Un chofer solo puede añadir documentos a su propio perfil.
 
@@ -109,7 +109,7 @@ def crear_documento(
     """
     if usuario.rol != RolUsuario.ADMIN and datos.chofer_id != usuario.chofer_id:
         raise HTTPException(
-            status_code=403, detail="Solo podés añadir cursos a tu propio perfil"
+            status_code=403, detail="Solo puedes añadir cursos a tu propio perfil"
         )
     _validar_titular(session, datos)
     doc = Documento(**datos.model_dump())
@@ -175,7 +175,7 @@ def renovar_documento(
         raise HTTPException(status_code=404, detail="Documento no encontrado")
     if usuario.rol != RolUsuario.ADMIN and doc.chofer_id != usuario.chofer_id:
         raise HTTPException(
-            status_code=403, detail="Solo podés renovar tus propios documentos"
+            status_code=403, detail="Solo puedes renovar tus propios documentos"
         )
     if datos.fecha_vencimiento <= date.today():
         raise HTTPException(

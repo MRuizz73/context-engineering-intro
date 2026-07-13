@@ -85,7 +85,7 @@ class DocumentoCreate(BaseModel):
         """
         if bool(self.chofer_id) == bool(self.camion_id):
             raise ValueError(
-                "El documento debe pertenecer a un chofer O a un camión (exactamente uno)."
+                "El documento debe pertenecer a un chófer O a un camión (exactamente uno)."
             )
         if self.dias_aviso < 0:
             raise ValueError("dias_aviso no puede ser negativo.")

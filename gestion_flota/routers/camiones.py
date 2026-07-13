@@ -55,7 +55,7 @@ def crear_camion(datos: CamionCreate, session: Session = Depends(get_session)) -
     """
     existente = session.exec(select(Camion).where(Camion.patente == datos.patente)).first()
     if existente is not None:
-        raise HTTPException(status_code=409, detail="Ya existe un camión con esa patente")
+        raise HTTPException(status_code=409, detail="Ya existe un camión con esa matrícula")
     camion = Camion(**datos.model_dump())
     session.add(camion)
     session.commit()

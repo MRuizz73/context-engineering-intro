@@ -1,0 +1,15 @@
+Options -Indexes
+DirectoryIndex index.php
+
+RewriteEngine On
+# La API JSON pasa por api.php
+RewriteRule ^api/ api.php [QSA,L]
+
+# Archivos internos nunca accesibles por web
+<FilesMatch "\.(csv|md)$">
+    Require all denied
+</FilesMatch>
+<FilesMatch "^(config\.php|config\.example\.php|cron\.php)$">
+    Require all denied
+</FilesMatch>
+RewriteRule ^lib/ - [F,L]

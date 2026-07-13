@@ -69,7 +69,7 @@ def registrarse(
     if codigo_requerido and datos.codigo != codigo_requerido:
         raise HTTPException(
             status_code=403,
-            detail="Código de empresa incorrecto. Pedíselo al responsable de transporte.",
+            detail="Código de empresa incorrecto. Pídeselo al responsable de transporte.",
         )
 
     chofer_id = None
@@ -87,7 +87,7 @@ def registrarse(
             raise HTTPException(
                 status_code=404,
                 detail=(
-                    "No hay ningún chofer con ese email. Pedile al responsable "
+                    "No hay ningún chófer con ese email. Pídele al responsable "
                     "que cargue tu email en tu perfil primero."
                 ),
             )
@@ -95,7 +95,7 @@ def registrarse(
             select(Usuario).where(Usuario.chofer_id == chofer.id)
         ).first()
         if ya_vinculado is not None:
-            raise HTTPException(status_code=409, detail="Ese chofer ya tiene cuenta")
+            raise HTTPException(status_code=409, detail="Ese chófer ya tiene cuenta")
         chofer_id = chofer.id
 
     username = datos.username.strip().lower()

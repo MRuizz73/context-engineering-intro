@@ -90,7 +90,7 @@ class Documento(SQLModel, table=True):
     """
     Curso, permiso o habilitación con fecha de vencimiento.
 
-    Pertenece a un chofer O a un camión (exactamente uno de los dos).
+    Pertenece a un chófer O a un camión (exactamente uno de los dos).
     `dias_aviso` define cuántos días antes del vencimiento se activa el
     recordatorio de renovación.
     """

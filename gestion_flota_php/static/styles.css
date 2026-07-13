@@ -1,0 +1,251 @@
+/* Identidad de marca (Manual de Uso iR):
+   verde #85F64B, celeste #36A9E1, degradado SIEMPRE de verde a celeste,
+   tipografía Lato. */
+
+:root {
+  --verde-marca: #85F64B;
+  --celeste-marca: #36A9E1;
+  --degradado-marca: linear-gradient(90deg, #85F64B 0%, #36A9E1 100%);
+  --celeste-oscuro: #1d7fb3;
+  --tinta: #16303f;
+  --rojo: #c0392b;
+  --amarillo: #b7791f;
+  --verde-ok: #3f9e2f;
+  --gris: #6b7280;
+  --borde: #d8dee6;
+  --fondo: #f4f7f9;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Lato", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fondo);
+  color: var(--tinta);
+}
+
+header {
+  background: var(--degradado-marca);
+  color: #fff;
+  padding: 1.2rem 2rem 0;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.subtitulo {
+  margin: 0.2rem 0 1rem;
+  font-size: 0.9rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.barra-usuario {
+  float: right;
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  font-size: 0.85rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.barra-usuario button {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--celeste-oscuro);
+  border: none;
+  font-weight: 700;
+}
+
+nav { display: flex; gap: 0.5rem; }
+
+.tab {
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  opacity: 0.85;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.tab:hover { opacity: 1; }
+.tab.activa {
+  background: var(--fondo);
+  color: var(--celeste-oscuro);
+  opacity: 1;
+  text-shadow: none;
+}
+
+main { padding: 1.5rem 2rem; max-width: 1100px; margin: 0 auto; }
+
+.oculta { display: none !important; }
+
+.barra { display: flex; justify-content: space-between; align-items: center; }
+
+h2 { margin-top: 0.5rem; font-weight: 900; }
+.ayuda { color: var(--gris); font-size: 0.88rem; margin-top: -0.4rem; }
+
+.tarjeta {
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.fila { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+.fila label { flex: 1; min-width: 160px; }
+
+label { display: block; font-size: 0.85rem; color: #374151; }
+label.check { display: flex; align-items: center; gap: 0.4rem; margin-top: 1.2rem; }
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  margin-top: 0.25rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-size: 0.92rem;
+  font-family: inherit;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--celeste-marca);
+  outline-offset: 0;
+  border-color: var(--celeste-marca);
+}
+label.check input { width: auto; margin: 0; }
+
+.acciones { display: flex; gap: 0.6rem; margin-top: 0.8rem; }
+
+button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--borde);
+  border-radius: 7px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+button:hover { filter: brightness(0.96); }
+
+.btn-primario {
+  background: var(--celeste-marca);
+  color: #fff;
+  border-color: var(--celeste-marca);
+  font-weight: 700;
+}
+.btn-marca {
+  background: var(--degradado-marca);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+}
+.btn-peligro { color: var(--rojo); border-color: var(--rojo); background: #fff; }
+.btn-chico { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
+
+.item-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.item-cabecera strong { font-size: 1.05rem; }
+.item-datos { color: var(--gris); font-size: 0.85rem; margin: 0.2rem 0 0.5rem; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 0.4rem; }
+th, td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--borde); }
+th { color: var(--gris); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; }
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.badge.vigente { background: #e9fcdc; color: var(--verde-ok); }
+.badge.por_vencer { background: #fdf3d7; color: var(--amarillo); }
+.badge.vencido { background: #fde8e6; color: var(--rojo); }
+.badge.inactivo { background: #e5e7eb; color: var(--gris); }
+
+.enlace-perfil {
+  color: var(--celeste-oscuro);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--celeste-marca);
+}
+.cuestionario { border-left: 5px solid var(--verde-marca); }
+
+.alerta { border-left: 5px solid var(--amarillo); }
+.alerta.vencido { border-left-color: var(--rojo); }
+
+.vacio {
+  text-align: center;
+  color: var(--gris);
+  padding: 2rem;
+  background: #fff;
+  border: 1px dashed var(--borde);
+  border-radius: 10px;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 48, 63, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.modal-contenido { width: min(640px, 92vw); max-height: 90vh; overflow-y: auto; }
+
+/* Pantalla de acceso (login/registro) con el degradado de marca */
+.pantalla-login {
+  position: fixed;
+  inset: 0;
+  background: var(--degradado-marca);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+}
+.caja-login {
+  background: #fff;
+  border-radius: 14px;
+  padding: 2rem;
+  width: min(400px, 94vw);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+.logo-login {
+  font-size: 2.4rem;
+  font-weight: 900;
+  margin: 0;
+  background: var(--degradado-marca);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.caja-login p { color: var(--gris); margin-top: 0.2rem; }
+.caja-login form { text-align: left; margin-top: 1rem; }
+.caja-login .btn-marca { width: 100%; margin-top: 1rem; padding: 0.7rem; font-size: 1rem; }
+.alternar-login {
+  margin-top: 1rem;
+  font-size: 0.88rem;
+  color: var(--gris);
+}
+.alternar-login a { color: var(--celeste-oscuro); font-weight: 700; cursor: pointer; }
+.error-login { color: var(--rojo); font-size: 0.85rem; margin-top: 0.6rem; min-height: 1.1em; }
+
+@media (max-width: 640px) {
+  main { padding: 1rem; }
+  header { padding: 1rem 1rem 0; }
+  .barra-usuario { float: none; margin-bottom: 0.5rem; }
+}

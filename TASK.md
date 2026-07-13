@@ -43,6 +43,18 @@
   `python -m gestion_flota.enviar_avisos`. Guía de despliegue ampliada
   con la sección "Servidor propio PHP + MySQL".
 
+- [x] **2026-07-13** — Versión PHP + MySQL completa (`gestion_flota_php/`)
+  para el hosting PHP de la empresa (sin Python): misma API JSON y misma
+  interfaz, PDO MySQL/SQLite, sesiones PHP con bcrypt, cliente SMTP propio
+  o mail() del hosting, recordatorios automáticos disparados por visitas
+  (máx. cada 12 h) + cron.php opcional, importación y cuentas iniciales
+  automáticas al primer arranque, .htaccess con bloqueo de archivos
+  internos. Verificada en navegador contra MariaDB real (misma paridad:
+  emails, roles, renovar, generador de cuentas, cuestionario).
+- [x] **2026-07-13** — Todo el lenguaje de la interfaz, emails y mensajes
+  pasado a español de España/canario (sin voseo; "chófer", "matrícula").
+  Excel de cuentas regenerado con instrucciones es-ES.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.

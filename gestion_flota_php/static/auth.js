@@ -67,7 +67,7 @@ async function enviarLogin(evento) {
       ? document.getElementById("login-email-chofer").value.trim()
       : null,
   };
-  const ruta = modoRegistro ? "/api/auth/registro" : "/api/auth/login";
+  const ruta = modoRegistro ? "api/auth/registro" : "api/auth/login";
   const resp = await fetch(ruta, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -89,12 +89,12 @@ async function enviarLogin(evento) {
 }
 
 async function cerrarSesion() {
-  await fetch("/api/auth/logout", { method: "POST" });
+  await fetch("api/auth/logout", { method: "POST" });
   mostrarLogin();
 }
 
 async function inicializarAuth() {
-  const resp = await fetch("/api/auth/yo");
+  const resp = await fetch("api/auth/yo");
   if (resp.ok) {
     mostrarApp(await resp.json());
   } else {
@@ -122,7 +122,7 @@ async function cambiarPassword(evento) {
     alert("Las contraseñas nuevas no coinciden");
     return false;
   }
-  const resp = await fetch("/api/auth/cambiar-password", {
+  const resp = await fetch("api/auth/cambiar-password", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -180,7 +180,7 @@ function iniciarAvisos() {
 
 async function revisarVencimientos() {
   if (!("Notification" in window) || Notification.permission !== "granted") return;
-  const resp = await fetch("/api/vencimientos");
+  const resp = await fetch("api/vencimientos");
   if (!resp.ok) return;
   const alertas = await resp.json();
   if (alertas.length === 0) return;

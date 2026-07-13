@@ -132,7 +132,7 @@ def enviar_recordatorios(session: Session, hoy: Optional[date] = None) -> Dict:
             "Hola,\n\n"
             "Estos cursos/permisos están vencidos o por vencer y necesitan renovación:\n\n"
             f"{lineas}\n\n"
-            "Por favor coordiná la renovación cuanto antes.\n\n"
+            "Por favor coordina la renovación cuanto antes.\n\n"
             "— Gestión de Flota (mensaje automático)"
         )
         _enviar_smtp(destino, "⛽ Recordatorio de renovación de cursos/permisos", cuerpo)

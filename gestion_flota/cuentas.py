@@ -90,7 +90,7 @@ def crear_cuenta_chofer(session: Session, chofer: Chofer) -> Dict[str, str]:
         select(Usuario).where(Usuario.chofer_id == chofer.id)
     ).first()
     if existente is not None:
-        raise ValueError(f"Este chofer ya tiene la cuenta '{existente.username}'")
+        raise ValueError(f"Este chófer ya tiene la cuenta '{existente.username}'")
     username = generar_username(session, chofer)
     password = generar_password()
     session.add(
