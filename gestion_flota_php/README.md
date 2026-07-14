@@ -5,7 +5,9 @@ en **PHP** (sin frameworks ni dependencias) para funcionar en cualquier
 hosting PHP con **MariaDB 10.11** (también compatible con MySQL): cPanel,
 Plesk o un servidor LAMP propio. Requiere PHP 8.0+ con las extensiones
 `pdo_mysql` y `openssl` (estándar en todos los hostings; `pdo_mysql` es el
-driver que usa PHP para conectarse a MariaDB).
+driver que usa PHP para conectarse a MariaDB). El envío de emails usa
+**PHPMailer 6.8.1** (incluido en `lib/phpmailer/`, sin nada que instalar)
+con STARTTLS en el puerto 587 o SSL en el 465.
 
 Verificada de punta a punta contra **MariaDB 10.11.14**: creación de
 tablas (InnoDB, utf8mb4), importación completa del calendario, login con

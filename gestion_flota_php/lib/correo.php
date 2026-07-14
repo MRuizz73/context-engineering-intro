@@ -1,9 +1,16 @@
 <?php
 /**
  * Recordatorios por email con el correo de la empresa.
- * SMTP propio (socket, STARTTLS, AUTH LOGIN) o mail() del hosting.
+ * Envío por PHPMailer (STARTTLS en 587 / SSL en 465) o mail() del hosting.
+ * PHPMailer 6.8.1 oficial incluido en lib/phpmailer/ (licencia LGPL 2.1).
  */
 declare(strict_types=1);
+
+require_once __DIR__ . '/phpmailer/Exception.php';
+require_once __DIR__ . '/phpmailer/PHPMailer.php';
+require_once __DIR__ . '/phpmailer/SMTP.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
 
 /** ¿Hay una forma de enviar correo configurada? */
 function correo_configurado(): bool
@@ -28,64 +35,45 @@ function enviar_email(string $para, string $asunto, string $cuerpo): void
     }
 }
 
-/** Cliente SMTP mínimo: EHLO, STARTTLS o SSL directo, AUTH LOGIN, envío. */
+/** Envío por SMTP con PHPMailer: STARTTLS en 587, SSL directo en 465. */
 function smtp_enviar(string $para, string $asunto, string $cuerpo): void
 {
     $s = config()['smtp'];
-    // Reason: el puerto 465 (IONOS, Gmail…) usa SSL desde el primer byte;
-    // el 587 negocia STARTTLS después de conectar.
-    $ssl_directo = (int) $s['puerto'] === 465;
-    $esquema = $ssl_directo ? 'ssl' : 'tcp';
-    $socket = @stream_socket_client("$esquema://{$s['host']}:{$s['puerto']}", $err, $msj, 30);
-    if ($socket === false) {
-        throw new ErrorHttp(502, "No se pudo conectar al servidor de correo ({$s['host']}:{$s['puerto']}): $msj");
-    }
-    $leer = function () use ($socket): string {
-        $resp = '';
-        while (($linea = fgets($socket, 515)) !== false) {
-            $resp .= $linea;
-            if (strlen($linea) < 4 || $linea[3] !== '-') {
-                break;
-            }
-        }
-        return $resp;
-    };
-    $mandar = function (string $cmd) use ($socket, $leer): string {
-        fwrite($socket, $cmd . "\r\n");
-        $resp = $leer();
-        if ((int) substr($resp, 0, 3) >= 400) {
-            throw new ErrorHttp(502, 'Error del servidor de correo: ' . trim($resp));
-        }
-        return $resp;
-    };
+    $mail = new PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host     = $s['host'];
+        $mail->Port     = (int) $s['puerto'];
+        $mail->SMTPAuth = ($s['password'] ?? '') !== '';
+        $mail->Username = $s['usuario'];
+        $mail->Password = $s['password'];
 
-    $leer();
-    $mandar('EHLO gestionflota');
-    if ($s['tls'] && !$ssl_directo) {
-        $mandar('STARTTLS');
-        if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
-            throw new ErrorHttp(502, 'No se pudo iniciar TLS con el servidor de correo');
+        // Reason: 587 negocia STARTTLS (ENCRYPTION_STARTTLS); 465 conecta
+        // cifrado desde el primer byte (ENCRYPTION_SMTPS). Con tls=false
+        // no se fuerza cifrado (solo para pruebas locales).
+        if ((int) $s['puerto'] === 465) {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        } elseif (!empty($s['tls'])) {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        } else {
+            $mail->SMTPSecure  = '';
+            $mail->SMTPAutoTLS = false;
         }
-        $mandar('EHLO gestionflota');
-    }
-    if (($s['password'] ?? '') !== '') {
-        $mandar('AUTH LOGIN');
-        $mandar(base64_encode($s['usuario']));
-        $mandar(base64_encode($s['password']));
-    }
 
-    $de = $s['usuario'];
-    $mandar("MAIL FROM:<$de>");
-    $mandar("RCPT TO:<$para>");
-    $mandar('DATA');
-    $mensaje = "From: $de\r\nTo: $para\r\n"
-        . 'Subject: =?UTF-8?B?' . base64_encode($asunto) . "?=\r\n"
-        . "MIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\n"
-        . "Content-Transfer-Encoding: base64\r\n\r\n"
-        . chunk_split(base64_encode($cuerpo));
-    $mandar($mensaje . "\r\n.");
-    $mandar('QUIT');
-    fclose($socket);
+        $mail->CharSet  = PHPMailer::CHARSET_UTF8;
+        $mail->Timeout  = 30;
+        $mail->setLanguage('es', __DIR__ . '/phpmailer/');
+        $mail->setFrom($s['usuario']);
+        $mail->addAddress($para);
+        $mail->Subject = $asunto;
+        $mail->Body    = $cuerpo;
+        $mail->send();
+    } catch (\PHPMailer\PHPMailer\Exception $e) {
+        throw new ErrorHttp(
+            502,
+            'Error del servidor de correo: ' . ($mail->ErrorInfo ?: $e->getMessage())
+        );
+    }
 }
 
 /** Línea legible de un documento para el cuerpo del email. */

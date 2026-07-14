@@ -90,7 +90,9 @@ Los 3 errores típicos con IONOS:
 3. El buzón debe existir en IONOS (Correo → crear buzón) — no vale una
    simple redirección.
 
-Tras configurar, entra como admin y pulsa **🧪 Probar correo** en el panel
+El envío usa la librería estándar **PHPMailer** (incluida, con STARTTLS en
+el 587 tal y como recomienda IONOS; con el puerto 465 pasa a SSL directo
+automáticamente). Tras configurar, entra como admin y pulsa **🧪 Probar correo** en el panel
 de Vencimientos: llega un email de prueba a la oficina, y si algo falla el
 mensaje de error muestra la respuesta exacta del servidor de IONOS.
 

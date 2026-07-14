@@ -74,6 +74,11 @@
   solo lectura para los chóferes; registro web desactivado (solo login con
   cuentas creadas por el admin). Tutorial PDF regenerado.
 
+- [x] **2026-07-14** — Envío de emails migrado a PHPMailer 6.8.1 oficial
+  (incluido en lib/phpmailer/, licencia LGPL): ENCRYPTION_STARTTLS en 587
+  y ENCRYPTION_SMTPS en 465, mensajes de error en español, idioma es.
+  Verificado envío real (prueba + recordatorio individual) vía SMTP local.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.
