@@ -71,11 +71,15 @@ function auth_registro(array $cuerpo): array
     $codigo   = $cuerpo['codigo'] ?? null;
     $email    = trim((string) ($cuerpo['email_chofer'] ?? ''));
 
+    $cfg = config();
+    // Reason: por defecto el registro está cerrado; las cuentas las crea el
+    // responsable desde la app (generador 🔐) y las entrega en mano.
+    if (!($cfg['registro_abierto'] ?? false)) {
+        throw new ErrorHttp(403, 'El registro está desactivado. El responsable de transporte crea las cuentas.');
+    }
     if (strlen($username) < 3 || strlen($password) < 6) {
         throw new ErrorHttp(422, 'Usuario (mín. 3) o contraseña (mín. 6) demasiado cortos');
     }
-
-    $cfg = config();
     $es_chofer = $email !== '';
     $codigo_requerido = $es_chofer
         ? ($cfg['codigo_chofer'] ?? null) ?: ($cfg['codigo_registro'] ?? null)

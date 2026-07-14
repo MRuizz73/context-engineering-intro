@@ -67,6 +67,13 @@
   generador de cuenta, camiones, avisos automáticos, vista del chófer,
   cambio de contraseña y FAQ. `gestion_flota_php/Tutorial_Gestion_Flota.pdf`.
 
+- [x] **2026-07-14** — Mejoras pedidas tras el estreno: SMTP compatible con
+  IONOS (465 SSL directo + guía con los 3 errores típicos) y botón "🧪
+  Probar correo"; botón "📧 Avisar" por documento (alerta y tablas);
+  perfil con cursos activos separados de pendientes; camiones visibles en
+  solo lectura para los chóferes; registro web desactivado (solo login con
+  cuentas creadas por el admin). Tutorial PDF regenerado.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.

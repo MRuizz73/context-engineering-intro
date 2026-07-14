@@ -28,13 +28,17 @@ function enviar_email(string $para, string $asunto, string $cuerpo): void
     }
 }
 
-/** Cliente SMTP mínimo: EHLO, STARTTLS, AUTH LOGIN, envío. */
+/** Cliente SMTP mínimo: EHLO, STARTTLS o SSL directo, AUTH LOGIN, envío. */
 function smtp_enviar(string $para, string $asunto, string $cuerpo): void
 {
     $s = config()['smtp'];
-    $socket = @stream_socket_client("tcp://{$s['host']}:{$s['puerto']}", $err, $msj, 30);
+    // Reason: el puerto 465 (IONOS, Gmail…) usa SSL desde el primer byte;
+    // el 587 negocia STARTTLS después de conectar.
+    $ssl_directo = (int) $s['puerto'] === 465;
+    $esquema = $ssl_directo ? 'ssl' : 'tcp';
+    $socket = @stream_socket_client("$esquema://{$s['host']}:{$s['puerto']}", $err, $msj, 30);
     if ($socket === false) {
-        throw new ErrorHttp(502, "No se pudo conectar al servidor de correo: $msj");
+        throw new ErrorHttp(502, "No se pudo conectar al servidor de correo ({$s['host']}:{$s['puerto']}): $msj");
     }
     $leer = function () use ($socket): string {
         $resp = '';
@@ -57,7 +61,7 @@ function smtp_enviar(string $para, string $asunto, string $cuerpo): void
 
     $leer();
     $mandar('EHLO gestionflota');
-    if ($s['tls']) {
+    if ($s['tls'] && !$ssl_directo) {
         $mandar('STARTTLS');
         if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
             throw new ErrorHttp(502, 'No se pudo iniciar TLS con el servidor de correo');
@@ -151,6 +155,63 @@ function enviar_recordatorios(PDO $pdo, ?string $hoy = null): array
         'documentos_avisados' => $avisados,
         'sin_destinatario'    => $sin_destinatario,
     ];
+}
+
+/**
+ * Envía el recordatorio de UN documento concreto (botón 📧 Avisar).
+ * No espera a la frecuencia automática: envía ya y reinicia el contador.
+ */
+function avisar_documento(PDO $pdo, int $documento_id): array
+{
+    $cfg = config();
+    $hoy = date('Y-m-d');
+    $admin = $cfg['email_admin'] ?: ($cfg['smtp']['usuario'] ?: ($cfg['email_remitente'] ?? ''));
+
+    $doc = null;
+    foreach (documentos_con_titular($pdo) as $d) {
+        if ($d['id'] === $documento_id) {
+            $doc = $d;
+            break;
+        }
+    }
+    if ($doc === null) {
+        throw new ErrorHttp(404, 'Documento no encontrado');
+    }
+    $destino = $doc['email_destino'] ?: $admin;
+    if ($destino === '') {
+        throw new ErrorHttp(422, 'El chófer no tiene email en su perfil y no hay email administrativo configurado');
+    }
+
+    $cuerpo = "Hola,\n\n"
+        . "Recordatorio sobre este curso/permiso:\n\n"
+        . describir_documento($doc, $hoy)
+        . "\n\nPor favor coordina la renovación cuanto antes.\n\n"
+        . '— Gestión de Flota';
+    enviar_email($destino, "⛽ Recordatorio: {$doc['nombre']} ({$doc['titular']})", $cuerpo);
+    $pdo->prepare('UPDATE documento SET ultimo_aviso_email = ? WHERE id = ?')
+        ->execute([$hoy, $documento_id]);
+    return ['enviado_a' => $destino, 'documento' => $doc['nombre']];
+}
+
+/**
+ * Envía un email de prueba al correo administrativo para verificar la
+ * configuración (botón 🧪 Probar correo).
+ */
+function probar_correo(): array
+{
+    $cfg = config();
+    $destino = $cfg['email_admin'] ?: ($cfg['smtp']['usuario'] ?: ($cfg['email_remitente'] ?? ''));
+    if ($destino === '') {
+        throw new ErrorHttp(422, 'Configura email_admin (o el buzón SMTP) en config.php');
+    }
+    enviar_email(
+        $destino,
+        '🧪 Prueba de correo — Gestión de Flota',
+        "Si estás leyendo esto, el correo de la empresa está bien configurado.\n\n"
+        . "Servidor: " . ($cfg['smtp']['host'] ?: 'mail() del hosting') . "\n"
+        . '— Gestión de Flota'
+    );
+    return ['enviado_a' => $destino];
 }
 
 /**

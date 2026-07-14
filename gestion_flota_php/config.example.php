@@ -16,14 +16,24 @@ return [
     ],
 
     // Correo de la empresa para los recordatorios.
-    // Con 'host' completo usa SMTP (Gmail: smtp.gmail.com + contraseña de
-    // aplicación). Con 'host' vacío usa la función mail() del hosting y
-    // 'remitente' como dirección De:.
+    //
+    // ▶ IONOS (recomendado si vuestro correo está en IONOS):
+    //     'host'     => 'smtp.ionos.es',    // o smtp.ionos.com / smtp.ionos.de
+    //     'puerto'   => 587,                // 587 con TLS; también vale 465 (SSL)
+    //     'usuario'  => 'avisos@tudominio.com',  // el BUZÓN COMPLETO, no un alias
+    //     'password' => 'la clave DEL BUZÓN (no la de la cuenta de cliente IONOS)',
+    //     'tls'      => true,
+    //   Tras configurarlo, usa el botón "🧪 Probar correo" de la app: si algo
+    //   falla, el mensaje de error dice exactamente qué respondió IONOS.
+    //
+    // ▶ Gmail: host smtp.gmail.com, puerto 587, contraseña DE APLICACIÓN.
+    // ▶ Con 'host' vacío se usa la función mail() del hosting con
+    //   'email_remitente' como remitente (menos fiable, puede caer en spam).
     'smtp' => [
-        'host'     => '',
+        'host'     => 'smtp.ionos.es',
         'puerto'   => 587,
-        'usuario'  => 'empresa@gmail.com',
-        'password' => '',
+        'usuario'  => 'avisos@tudominio.com',
+        'password' => 'CAMBIAR-CLAVE-BUZON',
         'tls'      => true,
     ],
     'email_remitente' => '',   // solo si se usa mail() del hosting
@@ -34,9 +44,12 @@ return [
     // Cada cuántos días se repite el email de un documento no renovado.
     'aviso_email_cada_dias' => 7,
 
-    // Códigos para crear cuentas nuevas desde la pantalla de registro.
-    'codigo_registro' => 'cambiar-este-codigo',  // responsables (ven todo)
-    'codigo_chofer'   => null,                   // choferes (null = mismo código)
+    // Registro de cuentas desde la web: DESACTIVADO por defecto. Las cuentas
+    // las crea el responsable desde la app (botón 🔐). Solo si se pone en
+    // true vuelven a aplicar los códigos de abajo.
+    'registro_abierto' => false,
+    'codigo_registro'  => 'cambiar-este-codigo',  // responsables (ven todo)
+    'codigo_chofer'    => null,                   // choferes (null = mismo código)
 
     // Importar datos_iniciales.csv y cuentas_iniciales.csv al primer uso.
     'auto_importar' => true,

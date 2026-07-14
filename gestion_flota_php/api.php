@@ -91,9 +91,11 @@ function enrutar(PDO $pdo, string $metodo, array $seg, array $cuerpo): mixed
         };
     }
 
-    // --- camiones (solo admin) ---
+    // --- camiones (ver: todos los usuarios; modificar: solo admin) ---
     if ($recurso === 'camiones') {
-        requiere_admin();
+        if ($metodo !== 'GET') {
+            requiere_admin();
+        }
         if ($id === null) {
             return match ($metodo) {
                 'GET'   => camiones_listar($pdo),
@@ -137,6 +139,13 @@ function enrutar(PDO $pdo, string $metodo, array $seg, array $cuerpo): mixed
         if ($accion === 'renovar' && $metodo === 'POST') {
             return documento_renovar($pdo, $id, $cuerpo, $usuario);
         }
+        if ($accion === 'avisar' && $metodo === 'POST') {
+            requiere_admin();
+            if (!correo_configurado()) {
+                throw new ErrorHttp(503, 'El correo de la empresa no está configurado en config.php.');
+            }
+            return avisar_documento($pdo, $id);
+        }
         return match ($metodo) {
             'PUT'    => documento_actualizar($pdo, $id, $cuerpo),
             'DELETE' => (function () use ($pdo, $id) {
@@ -155,12 +164,17 @@ function enrutar(PDO $pdo, string $metodo, array $seg, array $cuerpo): mixed
     }
 
     // --- avisos ---
-    if ($recurso === 'avisos' && ($seg[1] ?? '') === 'enviar' && $metodo === 'POST') {
+    if ($recurso === 'avisos' && $metodo === 'POST') {
         requiere_admin();
         if (!correo_configurado()) {
-            throw new ErrorHttp(503, 'El correo de la empresa no está configurado. Completá la sección smtp de config.php.');
+            throw new ErrorHttp(503, 'El correo de la empresa no está configurado. Completa la sección smtp de config.php.');
         }
-        return enviar_recordatorios($pdo);
+        if (($seg[1] ?? '') === 'enviar') {
+            return enviar_recordatorios($pdo);
+        }
+        if (($seg[1] ?? '') === 'probar') {
+            return probar_correo();
+        }
     }
 
     throw new ErrorHttp(404, 'Ruta no encontrada');

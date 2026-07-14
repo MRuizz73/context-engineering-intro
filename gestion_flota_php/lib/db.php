@@ -35,6 +35,7 @@ function config(): array
     if (getenv('GF_SMTP_HOST') !== false)    $base['smtp']['host'] = getenv('GF_SMTP_HOST');
     if (getenv('GF_SMTP_PUERTO') !== false)  $base['smtp']['puerto'] = (int) getenv('GF_SMTP_PUERTO');
     if (getenv('GF_SMTP_USUARIO') !== false) $base['smtp']['usuario'] = getenv('GF_SMTP_USUARIO');
+    if (getenv('GF_SMTP_PASSWORD') !== false) $base['smtp']['password'] = getenv('GF_SMTP_PASSWORD');
     if (getenv('GF_SMTP_TLS') !== false)     $base['smtp']['tls'] = getenv('GF_SMTP_TLS') === '1';
     if (getenv('GF_EMAIL_ADMIN') !== false)  $base['email_admin'] = getenv('GF_EMAIL_ADMIN');
     if (getenv('GF_CODIGO_REGISTRO') !== false) $base['codigo_registro'] = getenv('GF_CODIGO_REGISTRO') ?: null;

@@ -70,37 +70,43 @@ a **`config.php`**. Edítala (clic derecho → Edit) y completa:
 ],
 ```
 
-**Correo de la empresa** (para los recordatorios). Dos opciones:
-
-- **Opción A (recomendada) — SMTP de vuestro correo**. Si el correo de la
-  empresa está en el propio hosting, los datos SMTP salen de cPanel →
-  *Cuentas de correo electrónico → Connect Devices*:
-
-  ```php
-  'smtp' => [
-      'host'     => 'mail.tudominio.com',
-      'puerto'   => 587,
-      'usuario'  => 'avisos@tudominio.com',
-      'password' => 'clave-del-buzon',
-      'tls'      => true,
-  ],
-  ```
-
-  Si es Gmail: `host` = `smtp.gmail.com`, puerto 587, y como password una
-  **contraseña de aplicación** (Cuenta de Google → Seguridad →
-  Verificación en dos pasos → Contraseñas de aplicaciones).
-
-- **Opción B — el correo del hosting sin configurar nada**: deja
-  `'host' => ''` y pon `'email_remitente' => 'avisos@tudominio.com'`.
-  Usa la función `mail()` del servidor (a veces acaba en spam; la opción A
-  es más fiable).
-
-Y las dos claves de la empresa:
+**Correo de la empresa** (para los recordatorios) — con **IONOS**:
 
 ```php
-'email_admin'     => 'oficina@tudominio.com', // recibe avisos de camiones
-'codigo_registro' => 'ELEGID-UN-CODIGO',      // para crear cuentas nuevas
+'smtp' => [
+    'host'     => 'smtp.ionos.es',   // España; también smtp.ionos.com / .de
+    'puerto'   => 587,               // 587 con TLS (también vale 465 SSL)
+    'usuario'  => 'avisos@tudominio.com',
+    'password' => 'clave-del-buzon',
+    'tls'      => true,
+],
 ```
+
+Los 3 errores típicos con IONOS:
+1. `usuario` debe ser el **buzón completo** (`algo@tudominio.com`), no un
+   alias ni el nombre a secas.
+2. `password` es la **contraseña del buzón de correo**, no la de la cuenta
+   de cliente de IONOS.
+3. El buzón debe existir en IONOS (Correo → crear buzón) — no vale una
+   simple redirección.
+
+Tras configurar, entra como admin y pulsa **🧪 Probar correo** en el panel
+de Vencimientos: llega un email de prueba a la oficina, y si algo falla el
+mensaje de error muestra la respuesta exacta del servidor de IONOS.
+
+Alternativa sin SMTP: deja `'host' => ''` y pon
+`'email_remitente' => 'avisos@tudominio.com'` para usar la función
+`mail()` del hosting (menos fiable, puede caer en spam).
+
+Y el correo de la oficina:
+
+```php
+'email_admin' => 'oficina@tudominio.com', // recibe los avisos de camiones
+```
+
+El registro desde la web viene **desactivado**: las cuentas las creas tú
+desde la app (botón 🔐 al crear cada chófer) y las entregas en mano, así
+que no hace falta tocar `registro_abierto` ni los códigos.
 
 ## Paso 4 — Primer arranque (1 min)
 
@@ -153,7 +159,7 @@ tarea diaria:
 | **Error 500 al abrir** | Versión de PHP antigua. cPanel → *Select PHP Version* → elegir **8.1 o superior**. |
 | **"Error interno del servidor" al usar la app** | Datos de la base mal en `config.php` (nombre completo con prefijo, usuario, clave) o el usuario sin privilegios (Paso 1.3). |
 | **La portada carga pero todo da "Ruta no encontrada"** | No se subió el `.htaccess` (archivos ocultos) o el hosting tiene `mod_rewrite` desactivado (raro; se pide a soporte). |
-| **No llegan los emails** | Prueba el botón "📧 Enviar recordatorios por email": el mensaje de error dice qué pasa. Con Gmail, recuerda que es contraseña *de aplicación*, no la normal. |
+| **No llegan los emails** | Pulsa "🧪 Probar correo": el mensaje dice exactamente qué respondió el servidor. Con IONOS revisa los 3 errores típicos del Paso 3; con Gmail, recuerda que es contraseña *de aplicación*. |
 
 Cualquier mensaje de error que veas, pásamelo tal cual y te digo qué tocar.
 
@@ -161,7 +167,7 @@ Cualquier mensaje de error que veas, pásamelo tal cual y te digo qué tocar.
 
 - [ ] Base y usuario MariaDB creados con todos los privilegios
 - [ ] Archivos subidos con `.htaccess` incluido
-- [ ] `config.php` con base de datos + correo + `codigo_registro`
+- [ ] `config.php` con base de datos + correo de IONOS + email_admin
 - [ ] Primer arranque OK (login `admin`, alertas visibles)
 - [ ] HTTPS activo (candado en el navegador)
 - [ ] Emails probados con el botón 📧

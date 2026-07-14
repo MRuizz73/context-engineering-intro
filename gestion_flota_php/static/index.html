@@ -16,20 +16,10 @@
       <p>Gestión de Flota · Nos renovamos para ti</p>
       <form id="form-login" onsubmit="return enviarLogin(event)">
         <label>Usuario <input id="login-usuario" required autocomplete="username"></label>
-        <label>Contraseña <input id="login-password" type="password" required minlength="6" autocomplete="current-password"></label>
-        <label id="campo-tipo" class="oculta">Tipo de cuenta
-          <select id="login-tipo" onchange="cambioTipoCuenta()">
-            <option value="admin">Responsable de transporte (ve todo)</option>
-            <option value="chofer">Chófer (ve solo lo suyo)</option>
-          </select>
-        </label>
-        <label id="campo-email-chofer" class="oculta">Tu email de chófer <input id="login-email-chofer" type="email" placeholder="El que puso el responsable en tu perfil"></label>
-        <label id="campo-codigo" class="oculta">Código de la empresa <input id="login-codigo" placeholder="Te lo facilita el responsable"></label>
+        <label>Contraseña <input id="login-password" type="password" required autocomplete="current-password"></label>
         <button type="submit" class="btn-marca" id="btn-login">Iniciar sesión</button>
         <p class="error-login" id="error-login"></p>
-        <p class="alternar-login" id="alternar-login">
-          ¿No tienes cuenta? <a onclick="alternarModoLogin()">Regístrate</a>
-        </p>
+        <p class="alternar-login">¿Sin cuenta? El responsable de transporte te la facilita.</p>
       </form>
     </div>
   </div>
@@ -56,7 +46,10 @@
     <section id="vista-vencimientos" class="vista">
       <div class="barra">
         <h2>Recordatorios de renovación</h2>
-        <button class="btn-primario" id="btn-enviar-avisos" onclick="enviarRecordatorios(this)">📧 Enviar recordatorios por email</button>
+        <div class="acciones" style="margin:0">
+          <button class="btn-chico" id="btn-probar-correo" onclick="probarCorreo(this)">🧪 Probar correo</button>
+          <button class="btn-primario" id="btn-enviar-avisos" onclick="enviarRecordatorios(this)">📧 Enviar recordatorios por email</button>
+        </div>
       </div>
       <p class="ayuda">
         Documentos vencidos o dentro de su ventana de aviso. La alerta permanece
@@ -148,15 +141,18 @@
         </form>
       </div>
 
-      <h3>Cursos y permisos de este chófer</h3>
-      <div id="perfil-documentos"></div>
+      <h3>✅ Cursos y permisos activos (en vigor)</h3>
+      <div id="perfil-docs-activos"></div>
+
+      <h3>⚠️ Pendientes de renovar</h3>
+      <div id="perfil-docs-pendientes"></div>
     </section>
 
     <!-- Vista: Camiones -->
     <section id="vista-camiones" class="vista oculta">
       <div class="barra">
         <h2>Camiones</h2>
-        <button class="btn-primario" onclick="abrirFormCamion()">+ Nuevo camión</button>
+        <button class="btn-primario" id="btn-nuevo-camion" onclick="abrirFormCamion()">+ Nuevo camión</button>
       </div>
       <form id="form-camion" class="tarjeta oculta" onsubmit="return guardarCamion(event)">
         <h3 id="titulo-form-camion">Nuevo camión</h3>

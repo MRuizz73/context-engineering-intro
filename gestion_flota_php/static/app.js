@@ -96,6 +96,7 @@ async function cargarVencimientos() {
           </div>
           <div class="acciones" style="margin:0">
             <strong style="margin-right:0.6rem">${textoDias(d)}</strong>
+            ${window.esAdmin === false ? "" : `<button class="btn-chico" onclick="avisarDocumento(${d.id}, this)">📧 Avisar</button>`}
             <button class="btn-chico btn-marca" onclick='abrirRenovar(${JSON.stringify(JSON.stringify(d))})'>
               ✔ ${d.tipo === "curso" ? "Curso renovado" : "Permiso renovado"}
             </button>
@@ -119,6 +120,28 @@ function destinoEmail(d) {
 }
 
 // ---------- envío manual de recordatorios ----------
+
+async function avisarDocumento(id, boton) {
+  boton.disabled = true;
+  try {
+    const r = await api(`api/documentos/${id}/avisar`, { method: "POST" });
+    alert(`📧 Recordatorio de "${r.documento}" enviado a ${r.enviado_a}`);
+  } finally {
+    boton.disabled = false;
+  }
+}
+
+async function probarCorreo(boton) {
+  boton.disabled = true;
+  boton.textContent = "Probando…";
+  try {
+    const r = await api("api/avisos/probar", { method: "POST" });
+    alert(`✅ Email de prueba enviado a ${r.enviado_a}. Revisa esa bandeja de entrada (y el spam).`);
+  } finally {
+    boton.disabled = false;
+    boton.textContent = "🧪 Probar correo";
+  }
+}
 
 async function enviarRecordatorios(boton) {
   boton.disabled = true;
@@ -186,8 +209,9 @@ function tablaDocumentos(docs, tipoTitular, titularId) {
         <td>${d.dias_aviso} días</td>
         <td><span class="badge ${d.estado}">${ESTADOS[d.estado]}</span> <small>${esc(textoDias(d))}</small></td>
         <td>
-          ${d.estado !== "vigente" ? `<button class="btn-chico btn-marca" onclick='abrirRenovar(${JSON.stringify(JSON.stringify(d))})'>✔ Renovado</button>` : ""}
+          ${d.estado !== "vigente" && (window.esAdmin !== false || tipoTitular === "chofer") ? `<button class="btn-chico btn-marca" onclick='abrirRenovar(${JSON.stringify(JSON.stringify(d))})'>✔ Renovado</button>` : ""}
           ${window.esAdmin === false ? "" : `
+          <button class="btn-chico" onclick="avisarDocumento(${d.id}, this)">📧</button>
           <button class="btn-chico" onclick='abrirFormDoc(${JSON.stringify(JSON.stringify(d))}, "${tipoTitular}", ${titularId})'>Editar</button>
           <button class="btn-chico btn-peligro" onclick="borrarDocumento(${d.id})">Borrar</button>`}
         </td>
@@ -327,9 +351,10 @@ async function cargarCamiones() {
             ${c.activo ? "" : '<span class="badge inactivo">Inactivo</span>'}
           </div>
           <div class="acciones" style="margin:0">
+            ${window.esAdmin === false ? "" : `
             <button class="btn-chico btn-primario" onclick="abrirFormDoc(null, 'camion', ${c.id}, 'Camión ${esc(c.patente)}')">+ Permiso</button>
             <button class="btn-chico" onclick='editarCamion(${JSON.stringify(JSON.stringify(c))})'>Editar</button>
-            <button class="btn-chico btn-peligro" onclick="borrarCamion(${c.id})">Borrar</button>
+            <button class="btn-chico btn-peligro" onclick="borrarCamion(${c.id})">Borrar</button>`}
           </div>
         </div>
         <p class="item-datos">
@@ -454,9 +479,9 @@ async function borrarDocumento(id) {
 
 function cargarTodo() {
   cargarVencimientos();
+  cargarCamiones();
   if (window.esAdmin !== false) {
     cargarChoferes();
-    cargarCamiones();
   }
   if (window.refrescarPerfilSiAbierto) refrescarPerfilSiAbierto();
 }

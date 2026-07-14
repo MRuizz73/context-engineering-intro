@@ -15,11 +15,15 @@ async function abrirPerfil(choferId) {
   document.getElementById("perfil-telefono").value = chofer.telefono || "";
   document.getElementById("perfil-email").value = chofer.email || "";
   document.getElementById("perfil-activo").checked = chofer.activo;
-  document.getElementById("perfil-documentos").innerHTML = tablaDocumentos(
-    chofer.documentos,
-    "chofer",
-    chofer.id
-  );
+  // Cursos activos (en vigor) separados de los pendientes de renovar.
+  const activos = chofer.documentos.filter((d) => d.estado === "vigente");
+  const pendientes = chofer.documentos.filter((d) => d.estado !== "vigente");
+  document.getElementById("perfil-docs-activos").innerHTML = activos.length
+    ? tablaDocumentos(activos, "chofer", chofer.id)
+    : '<p class="item-datos">No hay cursos en vigor ahora mismo.</p>';
+  document.getElementById("perfil-docs-pendientes").innerHTML = pendientes.length
+    ? tablaDocumentos(pendientes, "chofer", chofer.id)
+    : '<p class="item-datos">✅ Nada pendiente de renovar.</p>';
   document.getElementById("form-cuestionario").reset();
   document.getElementById("cuest-aviso").value = 30;
 

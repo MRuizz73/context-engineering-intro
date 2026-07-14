@@ -1,6 +1,6 @@
-// Autenticación (login/registro), roles y notificaciones de escritorio.
+// Autenticación (solo login: las cuentas las crea el responsable),
+// roles y notificaciones de escritorio.
 
-let modoRegistro = false;
 let usuarioActual = null;
 
 // ---------- login / registro ----------
@@ -20,11 +20,13 @@ function mostrarApp(usuario) {
   document.getElementById("usuario-actual").textContent =
     `👤 ${usuario.username}${window.esAdmin ? " (responsable)" : ""}`;
 
-  // Un chofer solo ve sus vencimientos y su perfil.
-  document.querySelectorAll('[data-vista="choferes"], [data-vista="camiones"]')
+  // Un chófer ve sus vencimientos, su perfil y los camiones (solo lectura).
+  document.querySelectorAll('[data-vista="choferes"]')
     .forEach((t) => t.classList.toggle("oculta", !window.esAdmin));
   document.getElementById("tab-perfil").classList.toggle("oculta", window.esAdmin);
-  document.getElementById("btn-enviar-avisos").classList.toggle("oculta", !window.esAdmin);
+  ["btn-enviar-avisos", "btn-probar-correo", "btn-nuevo-camion"].forEach((id) =>
+    document.getElementById(id).classList.toggle("oculta", !window.esAdmin)
+  );
 
   actualizarBotonAvisos();
   cargarTodo();
@@ -37,37 +39,13 @@ function abrirMiPerfil(tab) {
   abrirPerfil(usuarioActual.chofer_id);
 }
 
-function alternarModoLogin() {
-  modoRegistro = !modoRegistro;
-  document.getElementById("campo-codigo").classList.toggle("oculta", !modoRegistro);
-  document.getElementById("campo-tipo").classList.toggle("oculta", !modoRegistro);
-  cambioTipoCuenta();
-  document.getElementById("btn-login").textContent = modoRegistro ? "Crear cuenta" : "Iniciar sesión";
-  document.getElementById("alternar-login").innerHTML = modoRegistro
-    ? '¿Ya tienes cuenta? <a onclick="alternarModoLogin()">Inicia sesión</a>'
-    : '¿No tienes cuenta? <a onclick="alternarModoLogin()">Regístrate</a>';
-  document.getElementById("error-login").textContent = "";
-}
-
-function cambioTipoCuenta() {
-  const esChofer =
-    modoRegistro && document.getElementById("login-tipo").value === "chofer";
-  document.getElementById("campo-email-chofer").classList.toggle("oculta", !esChofer);
-}
-
 async function enviarLogin(evento) {
   evento.preventDefault();
-  const esChofer =
-    modoRegistro && document.getElementById("login-tipo").value === "chofer";
   const datos = {
     username: document.getElementById("login-usuario").value.trim(),
     password: document.getElementById("login-password").value,
-    codigo: document.getElementById("login-codigo").value.trim() || null,
-    email_chofer: esChofer
-      ? document.getElementById("login-email-chofer").value.trim()
-      : null,
   };
-  const ruta = modoRegistro ? "api/auth/registro" : "api/auth/login";
+  const ruta = "api/auth/login";
   const resp = await fetch(ruta, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
