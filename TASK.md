@@ -79,6 +79,13 @@
   y ENCRYPTION_SMTPS en 465, mensajes de error en español, idioma es.
   Verificado envío real (prueba + recordatorio individual) vía SMTP local.
 
+- [x] **2026-07-14** — Interfaz optimizada para móvil (donde la usan los
+  chóferes): pestañas deslizables, tarjetas y botones de tamaño táctil,
+  formularios a una columna con fuente 16px (sin zoom de iOS), tablas con
+  desplazamiento lateral dentro de la tarjeta, modales como hoja inferior,
+  icono de app (apple-touch-icon) y theme-color. Verificado en viewport
+  390×844 sin desbordamiento horizontal (0 px).
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.

@@ -219,10 +219,12 @@ function tablaDocumentos(docs, tipoTitular, titularId) {
     )
     .join("");
   return `
+    <div class="tabla-scroll">
     <table>
       <thead><tr><th>Documento</th><th>Tipo</th><th>Vence</th><th>Aviso</th><th>Estado</th><th></th></tr></thead>
       <tbody>${filas}</tbody>
-    </table>`;
+    </table>
+    </div>`;
 }
 
 // ---------- choferes ----------
