@@ -93,6 +93,12 @@
   Verificado en escritorio y móvil (16→1 por nombre, 51→1 por matrícula,
   búsqueda por curso "cap conductor" → 8 chóferes).
 
+- [x] **2026-07-14** — Arreglo del corte de tablas en móvil (solo CSS, sin
+  tocar código): en pantallas ≤700px cada fila de las tablas de documentos
+  se muestra como mini-tarjeta apilada con etiquetas (Tipo/Vence/Aviso),
+  estado y botones a ancho completo. Verificado en 390×844 (iPhone 12 Pro)
+  y 412×914: 0 px de desbordamiento y 0 tablas cortadas.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.
