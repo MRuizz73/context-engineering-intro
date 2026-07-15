@@ -11,6 +11,7 @@ const ESTADOS_VEHICULO = {
 let datosVehiculos = [];
 let datosRegistro = [];      // registro completo (solo admin)
 let misSolicitudes = [];     // mis coches sin devolver
+let miPerfilTurismos = null; // datos de mi cuenta (nombre, dni, telefono, email)
 let vehiculoElegido = null;
 let solicitudDatos = null;   // {nombre, telefono, motivo} del paso 1
 let contratoPlantilla = null;
@@ -113,10 +114,12 @@ function obtenerUbicacion() {
 // ---------- carga y pintado ----------
 
 async function cargarTurismos() {
-  const [vehiculos, solicitudes] = await Promise.all([
+  const [vehiculos, solicitudes, perfil] = await Promise.all([
     api("api/turismos/vehiculos"),
     api("api/turismos/solicitudes"),
+    api("api/turismos/yo"),
   ]);
+  miPerfilTurismos = perfil && perfil.nombre ? perfil : null;
   datosVehiculos = vehiculos;
   if (window.esAdmin) {
     datosRegistro = solicitudes;
@@ -190,10 +193,25 @@ function abrirSolicitudTurismo(id) {
   if (!vehiculoElegido) return;
   document.getElementById("solicitud-veh").textContent =
     vehiculoElegido.matricula + (vehiculoElegido.modelo ? " · " + vehiculoElegido.modelo : "");
-  // Reason: se recuerdan nombre y teléfono en el móvil de cada persona para
-  // que la segunda solicitud sea de dos toques.
-  document.getElementById("sol-nombre").value = localStorage.getItem("turismo-nombre") || "";
-  document.getElementById("sol-telefono").value = localStorage.getItem("turismo-telefono") || "";
+
+  // Si la cuenta ya tiene los datos de la persona, no se le vuelven a pedir:
+  // se muestran como resumen y solo se pregunta el motivo.
+  const conPerfil = miPerfilTurismos && miPerfilTurismos.telefono;
+  document.getElementById("sol-datos-manuales").classList.toggle("oculta", !!conPerfil);
+  document.getElementById("sol-datos-perfil").classList.toggle("oculta", !conPerfil);
+  if (conPerfil) {
+    document.getElementById("sol-nombre").value = miPerfilTurismos.nombre;
+    document.getElementById("sol-telefono").value = miPerfilTurismos.telefono;
+    document.getElementById("sol-datos-perfil").textContent =
+      `Solicitas como ${miPerfilTurismos.nombre}` +
+      (miPerfilTurismos.dni ? ` · DNI ${miPerfilTurismos.dni}` : "") +
+      ` · ☎️ ${miPerfilTurismos.telefono} (datos de tu cuenta)`;
+  } else {
+    // Reason: sin datos en la cuenta (p. ej. el responsable) se recuerdan
+    // nombre y teléfono en el móvil para que la próxima vez sea más rápido.
+    document.getElementById("sol-nombre").value = localStorage.getItem("turismo-nombre") || "";
+    document.getElementById("sol-telefono").value = localStorage.getItem("turismo-telefono") || "";
+  }
   document.getElementById("sol-motivo").value = "";
   document.getElementById("modal-solicitud-turismo").classList.remove("oculta");
 }
@@ -205,8 +223,10 @@ async function continuarAlContrato(evento) {
     telefono: document.getElementById("sol-telefono").value.trim(),
     motivo: document.getElementById("sol-motivo").value.trim(),
   };
-  localStorage.setItem("turismo-nombre", solicitudDatos.nombre);
-  localStorage.setItem("turismo-telefono", solicitudDatos.telefono);
+  if (!miPerfilTurismos) {
+    localStorage.setItem("turismo-nombre", solicitudDatos.nombre);
+    localStorage.setItem("turismo-telefono", solicitudDatos.telefono);
+  }
 
   if (contratoPlantilla === null) {
     contratoPlantilla = (await api("api/turismos/contrato")).texto;
@@ -217,6 +237,8 @@ async function continuarAlContrato(evento) {
   const texto = contratoPlantilla
     .replaceAll("{{NOMBRE_APELLIDOS}}", solicitudDatos.nombre)
     .replaceAll("{{TELEFONO}}", solicitudDatos.telefono)
+    .replaceAll("{{DNI}}", (miPerfilTurismos && miPerfilTurismos.dni) || "________")
+    .replaceAll("{{EMAIL}}", (miPerfilTurismos && miPerfilTurismos.email) || "________")
     .replaceAll("{{MATRICULA}}", vehiculoElegido.matricula)
     .replaceAll("{{MARCA_MODELO}}", vehiculoElegido.modelo || "—")
     .replaceAll("{{FECHA_HORA_ENTREGA}}", fechaHora)

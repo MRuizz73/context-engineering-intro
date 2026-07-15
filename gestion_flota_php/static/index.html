@@ -315,10 +315,13 @@
   <div id="modal-solicitud-turismo" class="modal oculta">
     <form class="tarjeta modal-contenido" onsubmit="return continuarAlContrato(event)">
       <h3>🚗 Solicitar <span id="solicitud-veh"></span></h3>
-      <p class="ayuda">Rellena tus datos. En el siguiente paso firmarás el contrato de cesión.</p>
-      <div class="fila">
-        <label>Nombre y apellidos <input id="sol-nombre" required autocomplete="name"></label>
-        <label>Teléfono <input id="sol-telefono" type="tel" required autocomplete="tel"></label>
+      <p class="ayuda oculta" id="sol-datos-perfil"></p>
+      <div id="sol-datos-manuales">
+        <p class="ayuda">Rellena tus datos. En el siguiente paso firmarás el contrato de cesión.</p>
+        <div class="fila">
+          <label>Nombre y apellidos <input id="sol-nombre" required autocomplete="name"></label>
+          <label>Teléfono <input id="sol-telefono" type="tel" required autocomplete="tel"></label>
+        </div>
       </div>
       <label>¿Para qué necesitas el coche? <textarea id="sol-motivo" rows="2" required placeholder="Motivo de la solicitud"></textarea></label>
       <div class="acciones">
@@ -375,10 +378,15 @@
       <h3>👥 Crear usuario de vehículos</h3>
       <p class="ayuda">
         Esta cuenta SOLO puede solicitar y devolver turismos (no ve nada más).
+        Con sus datos guardados, al pedir un coche solo se le pregunta el motivo.
         El email se usa para avisarle si pasa 7 días sin devolver un coche.
       </p>
       <div class="fila">
         <label>Nombre y apellidos <input id="uv-nombre" required></label>
+        <label>DNI/NIE <input id="uv-dni" required placeholder="12345678A"></label>
+      </div>
+      <div class="fila">
+        <label>Teléfono <input id="uv-telefono" type="tel" required></label>
         <label>Email <input id="uv-email" type="email" required placeholder="persona@email.com"></label>
       </div>
       <div class="acciones">
@@ -417,7 +425,7 @@
   <script src="static/buscador.js?v=7"></script>
   <script src="static/app.js?v=7"></script>
   <script src="static/perfil.js?v=7"></script>
-  <script src="static/turismos.js?v=1"></script>
-  <script src="static/turismos_admin.js?v=1"></script>
+  <script src="static/turismos.js?v=2"></script>
+  <script src="static/turismos_admin.js?v=2"></script>
 </body>
 </html>

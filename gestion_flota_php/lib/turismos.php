@@ -57,16 +57,34 @@ function turismos_asegurar_esquema(PDO $pdo): void
             id $id,
             usuario_id INT NOT NULL UNIQUE,
             nombre VARCHAR(150) NOT NULL,
-            email VARCHAR(190) NOT NULL
+            email VARCHAR(190) NOT NULL,
+            dni VARCHAR(20) NULL,
+            telefono VARCHAR(50) NULL
         )$motor",
     ];
     foreach ($tablas as $sql) {
         $pdo->exec($sql);
     }
 
+    // Columnas añadidas después de la primera versión del módulo.
+    turismos_asegurar_columna($pdo, 'turismo_usuario', 'dni', 'VARCHAR(20) NULL');
+    turismos_asegurar_columna($pdo, 'turismo_usuario', 'telefono', 'VARCHAR(50) NULL');
+    turismos_asegurar_columna($pdo, 'turismo_solicitud', 'dni', 'VARCHAR(20) NULL');
+
     $csv = __DIR__ . '/../vehiculos_iniciales.csv';
     if ((int) $pdo->query('SELECT COUNT(*) FROM vehiculo')->fetchColumn() === 0 && file_exists($csv)) {
         turismos_importar_csv($pdo, $csv);
+    }
+}
+
+/** Añade una columna si falta (migración suave, vale para MariaDB y SQLite). */
+function turismos_asegurar_columna(PDO $pdo, string $tabla, string $columna, string $tipo): void
+{
+    try {
+        $pdo->exec("ALTER TABLE $tabla ADD COLUMN $columna $tipo");
+    } catch (Throwable $e) {
+        // Reason: si la columna ya existe el ALTER falla y no hay que hacer
+        // nada; así la migración es idempotente sin consultar el catálogo.
     }
 }
 
@@ -134,6 +152,13 @@ function turismos_enrutar(PDO $pdo, string $metodo, array $seg, array $cuerpo): 
         return ['texto' => turismos_contrato_plantilla()];
     }
 
+    // Datos de la cuenta del solicitante: si ya existen, la app no vuelve a
+    // pedirlos al solicitar un coche (solo pregunta el motivo).
+    if ($r === 'yo' && $metodo === 'GET') {
+        $perfil = turismo_perfil_usuario($pdo, (int) $usuario['id']);
+        return $perfil ?? ['nombre' => null, 'dni' => null, 'telefono' => null, 'email' => null];
+    }
+
     if ($r === 'vehiculos') {
         if ($metodo === 'GET') {
             return turismos_vehiculos_listar($pdo, $es_admin);
@@ -176,7 +201,7 @@ function turismos_enrutar(PDO $pdo, string $metodo, array $seg, array $cuerpo): 
         requiere_admin();
         if ($metodo === 'GET') {
             return $pdo->query(
-                'SELECT t.nombre, t.email, u.username FROM turismo_usuario t
+                'SELECT t.nombre, t.email, t.dni, t.telefono, u.username FROM turismo_usuario t
                  JOIN usuario u ON u.id = t.usuario_id ORDER BY t.nombre'
             )->fetchAll();
         }
@@ -325,6 +350,7 @@ function turismo_solicitud_a_read(array $f, bool $con_detalle = false): array
         'modelo'           => $f['modelo'],
         'nombre'           => $f['nombre'],
         'telefono'         => $f['telefono'],
+        'dni'              => $f['dni'] ?? null,
         'motivo'           => $f['motivo'],
         'fecha_solicitud'  => $f['fecha_solicitud'],
         'lat_solicitud'    => $f['lat_solicitud'] !== null ? (float) $f['lat_solicitud'] : null,
@@ -360,14 +386,33 @@ function turismos_solicitudes_listar(PDO $pdo, ?int $solo_usuario_id): array
     return array_map('turismo_solicitud_a_read', $stmt->fetchAll());
 }
 
+/** Datos de la cuenta de vehículos del usuario (o null si no tiene). */
+function turismo_perfil_usuario(PDO $pdo, int $usuario_id): ?array
+{
+    $stmt = $pdo->prepare('SELECT nombre, dni, telefono, email FROM turismo_usuario WHERE usuario_id = ?');
+    $stmt->execute([$usuario_id]);
+    $fila = $stmt->fetch();
+    return $fila === false ? null : $fila;
+}
+
 /** POST /api/turismos/solicitudes — pedir un coche con contrato firmado. */
 function turismo_solicitar(PDO $pdo, array $cuerpo, array $usuario): array
 {
     $vehiculo_id = (int) ($cuerpo['vehiculo_id'] ?? 0);
     $nombre   = trim((string) ($cuerpo['nombre'] ?? ''));
     $telefono = trim((string) ($cuerpo['telefono'] ?? ''));
+    $dni      = trim((string) ($cuerpo['dni'] ?? ''));
     $motivo   = trim((string) ($cuerpo['motivo'] ?? ''));
     $firma    = (string) ($cuerpo['firma'] ?? '');
+
+    // Reason: si la cuenta ya se creó con los datos de la persona, mandan
+    // los de la cuenta (no se le vuelven a pedir ni puede cambiarlos aquí).
+    $perfil = turismo_perfil_usuario($pdo, (int) $usuario['id']);
+    if ($perfil !== null) {
+        $nombre   = trim((string) $perfil['nombre']) ?: $nombre;
+        $telefono = trim((string) ($perfil['telefono'] ?? '')) ?: $telefono;
+        $dni      = trim((string) ($perfil['dni'] ?? '')) ?: $dni;
+    }
 
     if ($nombre === '' || $telefono === '' || $motivo === '') {
         throw new ErrorHttp(422, 'Nombre, teléfono y motivo son obligatorios');
@@ -393,15 +438,15 @@ function turismo_solicitar(PDO $pdo, array $cuerpo, array $usuario): array
     }
 
     [$lat, $lng] = turismo_coordenadas($cuerpo);
-    $contrato = turismos_contrato_relleno($nombre, $telefono, $veh);
+    $contrato = turismos_contrato_relleno($nombre, $telefono, $veh, $dni, $perfil['email'] ?? '');
     $token = bin2hex(random_bytes(16));
 
     $pdo->prepare(
-        'INSERT INTO turismo_solicitud (vehiculo_id, usuario_id, nombre, telefono, motivo,
+        'INSERT INTO turismo_solicitud (vehiculo_id, usuario_id, nombre, telefono, dni, motivo,
              fecha_solicitud, lat_solicitud, lng_solicitud, contrato, firma, ip, user_agent, token)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )->execute([
-        $vehiculo_id, (int) $usuario['id'], $nombre, $telefono, $motivo,
+        $vehiculo_id, (int) $usuario['id'], $nombre, $telefono, $dni ?: null, $motivo,
         date('Y-m-d H:i:s'), $lat, $lng, $contrato, $firma,
         substr((string) ($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45),
         substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255),
@@ -438,13 +483,20 @@ function turismo_coordenadas(array $cuerpo): array
 
 // ---------- usuarios de vehículos ----------
 
-/** POST /api/turismos/usuarios — botón "Crear usuario de vehículos" (nombre + email). */
+/** POST /api/turismos/usuarios — botón "Crear usuario de vehículos". */
 function turismo_usuario_crear(PDO $pdo, array $cuerpo): array
 {
-    $nombre = trim((string) ($cuerpo['nombre'] ?? ''));
-    $email  = strtolower(trim((string) ($cuerpo['email'] ?? '')));
+    $nombre   = trim((string) ($cuerpo['nombre'] ?? ''));
+    $email    = strtolower(trim((string) ($cuerpo['email'] ?? '')));
+    $dni      = strtoupper(trim((string) ($cuerpo['dni'] ?? '')));
+    $telefono = trim((string) ($cuerpo['telefono'] ?? ''));
     if ($nombre === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         throw new ErrorHttp(422, 'Hacen falta el nombre y un email válido');
+    }
+    // Reason: con DNI y teléfono en la cuenta, al solicitar un coche ya no
+    // se le vuelven a pedir sus datos: solo el motivo.
+    if ($dni === '' || $telefono === '') {
+        throw new ErrorHttp(422, 'Hacen falta también el DNI y el teléfono (así no se le piden al solicitar un coche)');
     }
     $stmt = $pdo->prepare('SELECT id FROM turismo_usuario WHERE email = ?');
     $stmt->execute([$email]);
@@ -469,8 +521,8 @@ function turismo_usuario_crear(PDO $pdo, array $cuerpo): array
     $password = generar_password();
     $pdo->prepare('INSERT INTO usuario (username, password_hash, rol, chofer_id) VALUES (?, ?, ?, NULL)')
         ->execute([$candidato, password_hash($password, PASSWORD_DEFAULT), 'vehiculos']);
-    $pdo->prepare('INSERT INTO turismo_usuario (usuario_id, nombre, email) VALUES (?, ?, ?)')
-        ->execute([(int) $pdo->lastInsertId(), $nombre, $email]);
+    $pdo->prepare('INSERT INTO turismo_usuario (usuario_id, nombre, email, dni, telefono) VALUES (?, ?, ?, ?, ?)')
+        ->execute([(int) $pdo->lastInsertId(), $nombre, $email, $dni, $telefono]);
 
     http_response_code(201);
     return ['username' => $candidato, 'password' => $password, 'nombre' => $nombre, 'email' => $email];
@@ -495,11 +547,13 @@ function turismos_contrato_plantilla(): string
 }
 
 /** Contrato definitivo que se archiva con la solicitud (prueba de la firma). */
-function turismos_contrato_relleno(string $nombre, string $telefono, array $veh): string
+function turismos_contrato_relleno(string $nombre, string $telefono, array $veh, string $dni = '', string $email = ''): string
 {
     $texto = strtr(turismos_contrato_plantilla(), [
         '{{NOMBRE_APELLIDOS}}'    => $nombre,
         '{{TELEFONO}}'            => $telefono,
+        '{{DNI}}'                 => $dni ?: '________',
+        '{{EMAIL}}'               => $email ?: '________',
         '{{MATRICULA}}'           => $veh['matricula'],
         '{{MARCA_MODELO}}'        => $veh['modelo'] ?: '—',
         '{{FECHA_HORA_ENTREGA}}'  => date('d/m/Y H:i'),

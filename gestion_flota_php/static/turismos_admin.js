@@ -137,8 +137,9 @@ async function guardarVehiculo(evento) {
 // ---------- usuarios de vehículos ----------
 
 function abrirUsuarioVehiculos() {
-  document.getElementById("uv-nombre").value = "";
-  document.getElementById("uv-email").value = "";
+  ["uv-nombre", "uv-dni", "uv-telefono", "uv-email"].forEach(
+    (id) => (document.getElementById(id).value = "")
+  );
   document.getElementById("modal-usuario-vehiculos").classList.remove("oculta");
 }
 
@@ -148,6 +149,8 @@ async function crearUsuarioVehiculos(evento) {
     method: "POST",
     body: JSON.stringify({
       nombre: document.getElementById("uv-nombre").value.trim(),
+      dni: document.getElementById("uv-dni").value.trim(),
+      telefono: document.getElementById("uv-telefono").value.trim(),
       email: document.getElementById("uv-email").value.trim(),
     }),
   });

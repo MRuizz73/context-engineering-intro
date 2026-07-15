@@ -127,6 +127,14 @@
   (escritorio, 390×844 y 412×914, 0 px de desbordamiento) y email de los
   7 días recibido en SMTP local con enlace funcional.
 
+- [x] **2026-07-15** — Turismos: los datos personales viajan con la cuenta.
+  "Crear usuario de vehículos" ahora guarda nombre, DNI, teléfono y email;
+  al solicitar un coche ya no se le vuelven a pedir (solo el motivo, con un
+  resumen "Solicitas como…"), el servidor toma los datos de la cuenta (no
+  se pueden falsear desde el navegador) y el contrato se archiva con nombre,
+  DNI y email rellenos. Migración suave de columnas (ALTER idempotente).
+  Verificado por API y Playwright en móvil 390×844.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.
