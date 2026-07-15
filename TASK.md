@@ -99,6 +99,14 @@
   estado y botones a ancho completo. Verificado en 390×844 (iPhone 12 Pro)
   y 412×914: 0 px de desbordamiento y 0 tablas cortadas.
 
+- [x] **2026-07-14** — Buscador con sugerencias táctiles (buscador.js):
+  al escribir se despliegan sugerencias (👷 chóferes con DNI, 🚛 matrículas
+  con marca/modelo, máx. 8) más la fila "🔍 Buscar «texto»"; la búsqueda
+  solo se aplica al tocar una sugerencia o pulsar Enter/tecla buscar del
+  móvil. Flechas+Enter en escritorio, Esc y toque fuera cierran, vaciar
+  restaura el listado. 34 comprobaciones pasadas en escritorio, 390×844 y
+  412×914.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.

@@ -73,7 +73,8 @@
       </div>
       <div class="buscador">
         <span class="lupa">🔍</span>
-        <input id="buscar-choferes" type="search" placeholder="Buscar chófer por nombre, DNI, email o curso…" oninput="pintarChoferes()" autocomplete="off">
+        <input id="buscar-choferes" type="search" placeholder="Buscar chófer por nombre, DNI, email o curso…" oninput="sugerir('choferes')" onkeydown="teclasBuscador(event, 'choferes')" autocomplete="off">
+        <div class="sugerencias oculta" id="sug-choferes"></div>
       </div>
       <form id="form-chofer" class="tarjeta oculta" onsubmit="return guardarChofer(event)">
         <h3 id="titulo-form-chofer">Nuevo chófer</h3>
@@ -167,7 +168,8 @@
       </div>
       <div class="buscador">
         <span class="lupa">🔍</span>
-        <input id="buscar-camiones" type="search" placeholder="Buscar camión por matrícula, marca o permiso…" oninput="pintarCamiones()" autocomplete="off">
+        <input id="buscar-camiones" type="search" placeholder="Buscar camión por matrícula, marca o permiso…" oninput="sugerir('camiones')" onkeydown="teclasBuscador(event, 'camiones')" autocomplete="off">
+        <div class="sugerencias oculta" id="sug-camiones"></div>
       </div>
       <form id="form-camion" class="tarjeta oculta" onsubmit="return guardarCamion(event)">
         <h3 id="titulo-form-camion">Nuevo camión</h3>
@@ -274,6 +276,7 @@
   </div>
 
   <script src="static/auth.js"></script>
+  <script src="static/buscador.js"></script>
   <script src="static/app.js"></script>
   <script src="static/perfil.js"></script>
 </body>

@@ -227,31 +227,10 @@ function tablaDocumentos(docs, tipoTitular, titularId) {
     </div>`;
 }
 
-// ---------- buscador ----------
+// ---------- buscador (lógica en buscador.js) ----------
 
 let datosChoferes = [];
 let datosCamiones = [];
-
-// Quita acentos y pasa a minúsculas para buscar sin preocuparse de tildes.
-function normalizarTexto(texto) {
-  return (texto || "")
-    .toString()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-}
-
-// Coincide si TODAS las palabras de la consulta aparecen en los campos.
-function coincideBusqueda(campos, consulta) {
-  const q = normalizarTexto(consulta).trim();
-  if (!q) return true;
-  const pajar = normalizarTexto(campos.filter(Boolean).join(" "));
-  return q.split(/\s+/).every((palabra) => pajar.includes(palabra));
-}
-
-function sinResultados(consulta) {
-  return `<div class="vacio">🔍 Sin resultados para «${esc(consulta)}». Borra el buscador para ver todo.</div>`;
-}
 
 // ---------- choferes ----------
 
@@ -266,15 +245,9 @@ function pintarChoferes() {
     cont.innerHTML = '<div class="vacio">Todavía no hay chóferes. Crea el primero con "+ Nuevo chófer".</div>';
     return;
   }
-  const consulta = document.getElementById("buscar-choferes").value;
-  const choferes = datosChoferes.filter((c) =>
-    coincideBusqueda(
-      [c.nombre, c.apellido, c.dni, c.email, c.telefono, ...c.documentos.map((d) => d.nombre)],
-      consulta
-    )
-  );
+  const choferes = datosChoferes.filter(pasaFiltroChofer);
   if (choferes.length === 0) {
-    cont.innerHTML = sinResultados(consulta);
+    cont.innerHTML = sinResultados(filtroChoferes);
     return;
   }
   cont.innerHTML = choferes
@@ -388,15 +361,9 @@ function pintarCamiones() {
     cont.innerHTML = '<div class="vacio">Todavía no hay camiones. Crea el primero con "+ Nuevo camión".</div>';
     return;
   }
-  const consulta = document.getElementById("buscar-camiones").value;
-  const camiones = datosCamiones.filter((c) =>
-    coincideBusqueda(
-      [c.patente, c.marca, c.modelo, c.anio, ...c.documentos.map((d) => d.nombre)],
-      consulta
-    )
-  );
+  const camiones = datosCamiones.filter(pasaFiltroCamion);
   if (camiones.length === 0) {
-    cont.innerHTML = sinResultados(consulta);
+    cont.innerHTML = sinResultados(filtroCamiones);
     return;
   }
   cont.innerHTML = camiones

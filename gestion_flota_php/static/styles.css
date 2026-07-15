@@ -181,6 +181,33 @@ button:hover { filter: brightness(0.96); }
   border-color: var(--celeste-marca);
 }
 
+.sugerencias {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(22, 48, 63, 0.18);
+  z-index: 60;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.sug-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.95rem;
+  cursor: pointer;
+  font-size: 0.92rem;
+  border-bottom: 1px solid #f0f3f6;
+}
+.sug-item:last-child { border-bottom: none; }
+.sug-item small { color: var(--gris); }
+.sug-item:hover, .sug-item.activa { background: var(--azul-claro, #e8f0fa); background: #eef7fd; }
+
 .tabla-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
 table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 0.4rem; }
@@ -360,6 +387,8 @@ th { color: var(--gris); font-weight: 700; font-size: 0.8rem; text-transform: up
   }
   .modal .acciones { flex-direction: column; }
   .modal .acciones button { width: 100%; }
+
+  .sug-item { padding: 0.85rem 1rem; font-size: 0.95rem; }
 
   /* Login a pantalla completa cómodo */
   .pantalla-login { padding: 0.8rem; }
