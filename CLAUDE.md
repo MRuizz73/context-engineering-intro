@@ -52,6 +52,12 @@
 - **Comment non-obvious code** and ensure everything is understandable to a mid-level developer.
 - When writing complex logic, **add an inline `# Reason:` comment** explaining the why, not just the what.
 
+### 📦 Entregas al hosting (gestion_flota_php)
+- **Cuando el usuario pida un cambio, entregarle SOLO los archivos afectados**
+  (en un ZIP pequeño que conserve la estructura de carpetas), nunca el pack
+  completo de la app, para que no tenga que resubir lo que ya funciona.
+  Solo dar el pack completo si lo pide explícitamente.
+
 ### 🧠 AI Behavior Rules
 - **Never assume missing context. Ask questions if uncertain.**
 - **Never hallucinate libraries or functions** – only use known, verified Python packages.
