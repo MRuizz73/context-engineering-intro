@@ -71,6 +71,10 @@
         <h2>Chóferes</h2>
         <button class="btn-primario" onclick="abrirFormChofer()">+ Nuevo chófer</button>
       </div>
+      <div class="buscador">
+        <span class="lupa">🔍</span>
+        <input id="buscar-choferes" type="search" placeholder="Buscar chófer por nombre, DNI, email o curso…" oninput="pintarChoferes()" autocomplete="off">
+      </div>
       <form id="form-chofer" class="tarjeta oculta" onsubmit="return guardarChofer(event)">
         <h3 id="titulo-form-chofer">Nuevo chófer</h3>
         <input type="hidden" id="chofer-id">
@@ -160,6 +164,10 @@
       <div class="barra">
         <h2>Camiones</h2>
         <button class="btn-primario" id="btn-nuevo-camion" onclick="abrirFormCamion()">+ Nuevo camión</button>
+      </div>
+      <div class="buscador">
+        <span class="lupa">🔍</span>
+        <input id="buscar-camiones" type="search" placeholder="Buscar camión por matrícula, marca o permiso…" oninput="pintarCamiones()" autocomplete="off">
       </div>
       <form id="form-camion" class="tarjeta oculta" onsubmit="return guardarCamion(event)">
         <h3 id="titulo-form-camion">Nuevo camión</h3>

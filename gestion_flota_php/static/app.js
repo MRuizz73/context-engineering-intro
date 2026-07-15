@@ -227,13 +227,54 @@ function tablaDocumentos(docs, tipoTitular, titularId) {
     </div>`;
 }
 
+// ---------- buscador ----------
+
+let datosChoferes = [];
+let datosCamiones = [];
+
+// Quita acentos y pasa a minúsculas para buscar sin preocuparse de tildes.
+function normalizarTexto(texto) {
+  return (texto || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+// Coincide si TODAS las palabras de la consulta aparecen en los campos.
+function coincideBusqueda(campos, consulta) {
+  const q = normalizarTexto(consulta).trim();
+  if (!q) return true;
+  const pajar = normalizarTexto(campos.filter(Boolean).join(" "));
+  return q.split(/\s+/).every((palabra) => pajar.includes(palabra));
+}
+
+function sinResultados(consulta) {
+  return `<div class="vacio">🔍 Sin resultados para «${esc(consulta)}». Borra el buscador para ver todo.</div>`;
+}
+
 // ---------- choferes ----------
 
 async function cargarChoferes() {
-  const choferes = await api("api/choferes");
+  datosChoferes = await api("api/choferes");
+  pintarChoferes();
+}
+
+function pintarChoferes() {
   const cont = document.getElementById("lista-choferes");
-  if (choferes.length === 0) {
+  if (datosChoferes.length === 0) {
     cont.innerHTML = '<div class="vacio">Todavía no hay chóferes. Crea el primero con "+ Nuevo chófer".</div>';
+    return;
+  }
+  const consulta = document.getElementById("buscar-choferes").value;
+  const choferes = datosChoferes.filter((c) =>
+    coincideBusqueda(
+      [c.nombre, c.apellido, c.dni, c.email, c.telefono, ...c.documentos.map((d) => d.nombre)],
+      consulta
+    )
+  );
+  if (choferes.length === 0) {
+    cont.innerHTML = sinResultados(consulta);
     return;
   }
   cont.innerHTML = choferes
@@ -337,10 +378,25 @@ async function borrarChofer(id) {
 // ---------- camiones ----------
 
 async function cargarCamiones() {
-  const camiones = await api("api/camiones");
+  datosCamiones = await api("api/camiones");
+  pintarCamiones();
+}
+
+function pintarCamiones() {
   const cont = document.getElementById("lista-camiones");
-  if (camiones.length === 0) {
+  if (datosCamiones.length === 0) {
     cont.innerHTML = '<div class="vacio">Todavía no hay camiones. Crea el primero con "+ Nuevo camión".</div>';
+    return;
+  }
+  const consulta = document.getElementById("buscar-camiones").value;
+  const camiones = datosCamiones.filter((c) =>
+    coincideBusqueda(
+      [c.patente, c.marca, c.modelo, c.anio, ...c.documentos.map((d) => d.nombre)],
+      consulta
+    )
+  );
+  if (camiones.length === 0) {
+    cont.innerHTML = sinResultados(consulta);
     return;
   }
   cont.innerHTML = camiones

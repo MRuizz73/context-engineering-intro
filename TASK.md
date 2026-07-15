@@ -86,6 +86,13 @@
   icono de app (apple-touch-icon) y theme-color. Verificado en viewport
   390×844 sin desbordamiento horizontal (0 px).
 
+- [x] **2026-07-14** — Buscador con lupa en Chóferes y Camiones: filtra al
+  instante mientras se escribe, sin distinguir tildes ni mayúsculas, por
+  nombre/DNI/email/teléfono y matrícula/marca/modelo, e incluso por nombre
+  de curso o permiso; mensaje de "sin resultados" con la consulta.
+  Verificado en escritorio y móvil (16→1 por nombre, 51→1 por matrícula,
+  búsqueda por curso "cap conductor" → 8 chóferes).
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.
