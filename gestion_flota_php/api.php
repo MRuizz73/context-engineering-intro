@@ -8,6 +8,7 @@ require_once __DIR__ . '/lib/db.php';
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/datos.php';
 require_once __DIR__ . '/lib/correo.php';
+require_once __DIR__ . '/lib/turismos.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -29,6 +30,7 @@ try {
         fastcgi_finish_request();
     }
     chequeo_automatico_avisos($pdo);
+    turismos_chequeo_avisos($pdo);
 } catch (ErrorHttp $e) {
     http_response_code($e->codigo);
     echo json_encode(['detail' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
@@ -57,7 +59,19 @@ function enrutar(PDO $pdo, string $metodo, array $seg, array $cuerpo): mixed
         };
     }
 
+    // --- turismos (módulo de coches de empresa; maneja sus propios roles,
+    //     incluida la devolución pública por token del email) ---
+    if ($recurso === 'turismos') {
+        return turismos_enrutar($pdo, $metodo, $seg, $cuerpo);
+    }
+
     $usuario = requiere_usuario();
+
+    // Reason: el rol 'vehiculos' es solo para pedir/devolver turismos; no
+    // debe ver choferes, camiones ni documentos.
+    if ($usuario['rol'] === 'vehiculos') {
+        throw new ErrorHttp(403, 'Tu cuenta solo tiene acceso a la sección de turismos');
+    }
 
     // --- choferes ---
     if ($recurso === 'choferes') {

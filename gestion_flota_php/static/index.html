@@ -14,6 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="static/styles.css?v=7">
+  <link rel="stylesheet" href="static/turismos.css?v=1">
 </head>
 <body>
   <!-- Pantalla de acceso -->
@@ -44,6 +45,7 @@
       <button class="tab activa" data-vista="vencimientos">🔔 Vencimientos</button>
       <button class="tab" data-vista="choferes">👷 Chóferes</button>
       <button class="tab" data-vista="camiones">🚛 Camiones</button>
+      <button class="tab oculta" id="tab-turismos" data-vista="turismos">🚗 Turismos</button>
       <button class="tab oculta" id="tab-perfil" onclick="abrirMiPerfil(this)">👤 Mi perfil</button>
     </nav>
   </header>
@@ -190,6 +192,40 @@
       </form>
       <div id="lista-camiones"></div>
     </section>
+
+    <!-- Vista: Turismos (coches de empresa) -->
+    <section id="vista-turismos" class="vista oculta">
+      <div class="barra">
+        <h2>🚗 Turismos de empresa</h2>
+        <div class="acciones oculta" style="margin:0" id="turismos-acciones-admin">
+          <button class="btn-primario btn-chico" onclick="abrirUsuarioVehiculos()">👥 Crear usuario de vehículos</button>
+          <button class="btn-chico" onclick="abrirFormVehiculo()">➕ Nuevo vehículo</button>
+        </div>
+      </div>
+      <div id="turismo-solicitud-activa"></div>
+      <p class="ayuda">
+        Toca un coche <strong>disponible</strong> para solicitarlo: te pediremos
+        tus datos, la firma del contrato de cesión y tu ubicación. Al devolverlo,
+        vuelve a entrar y confirma la devolución.
+      </p>
+      <div id="lista-turismos" class="turismo-lista"></div>
+
+      <div id="turismos-registro" class="oculta">
+        <div class="barra">
+          <h3>📖 Registro de uso (auditoría)</h3>
+          <div class="acciones" style="margin:0">
+            <select id="registro-filtro" onchange="pintarRegistroTurismos()">
+              <option value="todas">Todas</option>
+              <option value="en_uso">En uso</option>
+              <option value="devueltas">Devueltas</option>
+            </select>
+            <input type="month" id="registro-mes" onchange="pintarRegistroTurismos()">
+            <button class="btn-chico" onclick="exportarRegistroTurismos()">⬇️ Exportar CSV</button>
+          </div>
+        </div>
+        <div id="lista-registro-turismos"></div>
+      </div>
+    </section>
   </main>
 
   <!-- Modal de documento (curso/permiso) -->
@@ -275,9 +311,113 @@
     </form>
   </div>
 
+  <!-- Modal: datos de la solicitud de turismo (paso 1) -->
+  <div id="modal-solicitud-turismo" class="modal oculta">
+    <form class="tarjeta modal-contenido" onsubmit="return continuarAlContrato(event)">
+      <h3>🚗 Solicitar <span id="solicitud-veh"></span></h3>
+      <p class="ayuda">Rellena tus datos. En el siguiente paso firmarás el contrato de cesión.</p>
+      <div class="fila">
+        <label>Nombre y apellidos <input id="sol-nombre" required autocomplete="name"></label>
+        <label>Teléfono <input id="sol-telefono" type="tel" required autocomplete="tel"></label>
+      </div>
+      <label>¿Para qué necesitas el coche? <textarea id="sol-motivo" rows="2" required placeholder="Motivo de la solicitud"></textarea></label>
+      <div class="acciones">
+        <button type="submit" class="btn-marca">Continuar → contrato</button>
+        <button type="button" onclick="cerrarModalTurismo('modal-solicitud-turismo')">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal: contrato de cesión + firma con el dedo (paso 2) -->
+  <div id="modal-contrato" class="modal oculta">
+    <div class="tarjeta modal-contenido">
+      <h3>📄 Contrato de cesión</h3>
+      <div id="contrato-texto" class="contrato-texto"></div>
+      <label class="check"><input type="checkbox" id="chk-contrato"> He leído y acepto el contrato</label>
+      <label class="check"><input type="checkbox" id="chk-estado"> He revisado y confirmo el estado de entrega del vehículo</label>
+      <label class="check"><input type="checkbox" id="chk-datos"> He sido informado del tratamiento de mis datos y de la geolocalización</label>
+      <p class="ayuda" style="margin:0.5rem 0 0.2rem">✍️ Firma con el dedo dentro del recuadro:</p>
+      <canvas id="firma-canvas" class="firma-canvas"></canvas>
+      <button type="button" class="btn-chico" onclick="limpiarFirma()">🧽 Borrar firma</button>
+      <div class="acciones">
+        <button type="button" class="btn-marca" onclick="firmarYSolicitar(this)">✍️ Firmar y solicitar el coche</button>
+        <button type="button" onclick="cerrarModalTurismo('modal-contrato')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: nuevo/editar vehículo (solo responsable) -->
+  <div id="modal-vehiculo" class="modal oculta">
+    <form class="tarjeta modal-contenido" onsubmit="return guardarVehiculo(event)">
+      <h3 id="titulo-form-vehiculo">Nuevo vehículo</h3>
+      <input type="hidden" id="veh-id">
+      <div class="fila">
+        <label>Matrícula <input id="veh-matricula" required></label>
+        <label>Modelo <input id="veh-modelo" placeholder="Ej: TOYOTA MIRAI"></label>
+        <label>Estado
+          <select id="veh-estado">
+            <option value="disponible">Disponible</option>
+            <option value="mantenimiento">Mantenimiento</option>
+            <option value="baja">Fuera de flota</option>
+          </select>
+        </label>
+      </div>
+      <div class="acciones">
+        <button type="submit" class="btn-primario">Guardar</button>
+        <button type="button" onclick="cerrarModalTurismo('modal-vehiculo')">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal: crear usuario de vehículos (solo responsable) -->
+  <div id="modal-usuario-vehiculos" class="modal oculta">
+    <form class="tarjeta modal-contenido" onsubmit="return crearUsuarioVehiculos(event)">
+      <h3>👥 Crear usuario de vehículos</h3>
+      <p class="ayuda">
+        Esta cuenta SOLO puede solicitar y devolver turismos (no ve nada más).
+        El email se usa para avisarle si pasa 7 días sin devolver un coche.
+      </p>
+      <div class="fila">
+        <label>Nombre y apellidos <input id="uv-nombre" required></label>
+        <label>Email <input id="uv-email" type="email" required placeholder="persona@email.com"></label>
+      </div>
+      <div class="acciones">
+        <button type="submit" class="btn-primario">Crear cuenta</button>
+        <button type="button" onclick="cerrarModalTurismo('modal-usuario-vehiculos')">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal: detalle de una solicitud (contrato firmado, auditoría) -->
+  <div id="modal-detalle-solicitud" class="modal oculta">
+    <div class="tarjeta modal-contenido">
+      <h3>📄 Contrato firmado</h3>
+      <p class="ayuda" id="detalle-solicitud-info"></p>
+      <div id="detalle-contrato" class="contrato-texto"></div>
+      <p class="ayuda" style="margin:0.5rem 0 0.2rem">Firma del cesionario:</p>
+      <img id="detalle-firma" class="firma-imagen" alt="Firma del cesionario">
+      <div class="acciones">
+        <button type="button" onclick="cerrarModalTurismo('modal-detalle-solicitud')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pantalla pública de devolución (enlace del email, sin iniciar sesión) -->
+  <div id="pantalla-devolucion" class="pantalla-login oculta">
+    <div class="caja-login">
+      <h1 class="logo-login">iR</h1>
+      <p>Devolución de vehículo</p>
+      <div id="devolucion-info" class="devolucion-info">Comprobando el enlace…</div>
+      <button class="btn-marca" id="btn-devolucion-token" onclick="confirmarDevolucionToken(this)">📍 Confirmar devolución</button>
+      <p class="error-login" id="error-devolucion"></p>
+    </div>
+  </div>
+
   <script src="static/auth.js?v=7"></script>
   <script src="static/buscador.js?v=7"></script>
   <script src="static/app.js?v=7"></script>
   <script src="static/perfil.js?v=7"></script>
+  <script src="static/turismos.js?v=1"></script>
+  <script src="static/turismos_admin.js?v=1"></script>
 </body>
 </html>

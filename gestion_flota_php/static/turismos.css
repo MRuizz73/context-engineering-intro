@@ -1,0 +1,104 @@
+/* Turismos (coches de empresa) — estilos del módulo, pensados para móvil. */
+
+.turismo-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+}
+
+.turismo-card {
+  position: relative;
+  background: #fff;
+  border: 1.5px solid var(--borde);
+  border-radius: 14px;
+  padding: 0.85rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-height: 96px;
+}
+.turismo-card strong { font-size: 1.02rem; }
+.turismo-modelo { font-size: 0.82rem; color: var(--gris); min-height: 1.1em; }
+.turismo-card .badge { align-self: flex-start; }
+.turismo-card small { color: var(--gris); font-size: 0.72rem; }
+
+.turismo-card.libre {
+  cursor: pointer;
+  border-color: #85f64b;
+  box-shadow: 0 2px 8px rgba(133, 246, 75, 0.25);
+  -webkit-tap-highlight-color: rgba(133, 246, 75, 0.3);
+}
+.turismo-card.libre:active { transform: scale(0.97); }
+.turismo-card.ocupado { opacity: 0.8; background: #fff7f2; }
+.turismo-card.parado { opacity: 0.55; background: #f4f6f8; }
+
+.badge.libre { background: #e3fbd2; color: #2c6b06; }
+.badge.ocupado { background: #ffe4d1; color: #a34a00; }
+.badge.parado { background: #e8ecef; color: #5a6a76; }
+
+.btn-editar-veh {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  padding: 0.25rem 0.45rem;
+}
+
+.turismo-activa { border-left: 6px solid #36a9e1; }
+.turismo-activa .btn-marca { margin-top: 0.3rem; }
+
+/* Contrato dentro del modal (scroll propio) y firma */
+.contrato-texto {
+  max-height: 36vh;
+  overflow-y: auto;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 0.7rem 0.95rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  background: #fafcfe;
+  margin-bottom: 0.6rem;
+}
+.contrato-texto h3, .contrato-texto h4, .contrato-texto h5 { margin: 0.5rem 0 0.25rem; }
+.contrato-texto p { margin: 0.35rem 0; }
+
+.firma-canvas {
+  width: 100%;
+  height: 160px;
+  display: block;
+  border: 2px dashed var(--borde);
+  border-radius: 10px;
+  background: #fff;
+  touch-action: none;
+  margin-bottom: 0.4rem;
+}
+
+.firma-imagen {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: #fff;
+}
+
+/* Pantalla pública de devolución (enlace del email) */
+.devolucion-info { margin: 0.9rem 0; line-height: 1.5; }
+
+/* Registro de auditoría */
+.registro-item .item-datos a { word-break: break-all; }
+#turismos-registro { margin-top: 1.4rem; }
+#turismos-registro select, #turismos-registro input[type="month"] {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+}
+
+/* Móvil: tarjetas a dos columnas y botones cómodos con el pulgar */
+@media (max-width: 700px) {
+  .turismo-lista { grid-template-columns: repeat(2, 1fr); gap: 0.55rem; }
+  .turismo-card { padding: 0.75rem 0.7rem; }
+  .contrato-texto { max-height: 32vh; }
+  .firma-canvas { height: 150px; }
+  #turismos-registro .barra { flex-direction: column; align-items: stretch; }
+  #turismos-registro .acciones { flex-wrap: wrap; }
+}

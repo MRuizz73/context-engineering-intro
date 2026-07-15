@@ -17,10 +17,12 @@ require_once __DIR__ . '/lib/db.php';
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/datos.php';
 require_once __DIR__ . '/lib/correo.php';
+require_once __DIR__ . '/lib/turismos.php';
 
 if (!correo_configurado()) {
     fwrite(STDERR, "Correo no configurado: completá la sección smtp de config.php\n");
     exit(1);
 }
 $resumen = enviar_recordatorios(db());
+turismos_chequeo_avisos(db());
 echo json_encode($resumen, JSON_UNESCAPED_UNICODE) . "\n";

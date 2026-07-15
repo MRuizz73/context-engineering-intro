@@ -107,6 +107,26 @@
   restaura el listado. 34 comprobaciones pasadas en escritorio, 390×844 y
   412×914.
 
+- [x] **2026-07-15** — Módulo de TURISMOS (coches de empresa) para auditorías,
+  100% aditivo (nuevos `lib/turismos.php`, `static/turismos.js`,
+  `turismos_admin.js`, `turismos.css`; sin tocar el código existente):
+  rol nuevo 'vehiculos' que SOLO ve la sección de turismos; solicitud de
+  coche tocando la tarjeta (nombre, teléfono y motivo obligatorios) con
+  ubicación GPS del navegador, contrato de cesión con los datos rellenos y
+  firma con el dedo (canvas, archivada como PNG con IP y user-agent);
+  devolución con GPS desde la app o desde el enlace directo del email;
+  aviso automático por email a los 7 días sin devolver ("¿Devolviste el
+  coche y no lo pusiste en la app? Ponlo aquí:" + enlace con token);
+  botón "👥 Crear usuario de vehículos" (nombre + email) para el admin;
+  registro de auditoría filtrable (estado/mes) y exportable a CSV con
+  ubicaciones en el mapa y contrato firmado visible; alta/edición de
+  vehículos y siembra de los 51 turismos reales del listado (estados
+  mantenimiento/fuera de flota detectados). Interfaz enfocada a móvil
+  (tarjetas táctiles a 2 columnas, hoja inferior, canvas de firma).
+  Verificado contra MariaDB 10.11 real + Playwright: 26 comprobaciones
+  (escritorio, 390×844 y 412×914, 0 px de desbordamiento) y email de los
+  7 días recibido en SMTP local con enlace funcional.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.
