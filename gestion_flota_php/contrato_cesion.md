@@ -11,7 +11,7 @@ Relación con la empresa: {{RELACION}}
 **Periodo de cesión:** desde {{FECHA_HORA_ENTREGA}} hasta {{FECHA_HORA_DEVOLUCION}}
 **Lugar de entrega y devolución:** {{LUGAR}}
 **Estado en la entrega:** Km {{KM}} · Carga/combustible {{NIVEL}}% · Accesorios: {{ACCESORIOS}} · Daños previos declarados: {{DANOS_PREVIOS}}
-**Finalidad de la cesión:** {{FINALIDAD}}
+**Finalidad de la cesión:** Exclusivamente profesional
 
 ---
 
@@ -28,7 +28,7 @@ El Cesionario reconoce recibir el vehículo en perfecto estado de uso, con su do
 El Cesionario se obliga a:
 
 a) Conducir con permiso en vigor y válido en España, y a comunicar de inmediato cualquier suspensión, retirada o pérdida de puntos.
-b) No permitir que conduzca ninguna persona distinta de él mismo o de los conductores autorizados por escrito en este contrato: {{CONDUCTORES_AUTORIZADOS}}.
+b) No permitir que conduzca ninguna persona distinta de él mismo, {{NOMBRE_APELLIDOS}}, salvo otros conductores autorizados por escrito por el Cedente.
 c) No conducir bajo los efectos del alcohol, drogas, estupefacientes o medicamentos que alteren la aptitud para conducir.
 d) Cumplir las normas de circulación y las instrucciones del fabricante recogidas en el manual del vehículo.
 e) No utilizar el vehículo para: transporte remunerado de personas o mercancías, VTC o taxi, autoescuela, competiciones, pruebas de velocidad o rallies, remolque o empuje de otros vehículos, subarriendo o cesión a terceros, transporte de mercancías peligrosas, actividades ilícitas, ni circulación fuera de vías aptas para su uso.
@@ -47,24 +47,24 @@ Todas las sanciones de tráfico, multas de aparcamiento, peajes, tasas, retirada
 
 El Cesionario **autoriza expresamente** al Cedente a identificarlo como conductor responsable ante la DGT, las policías locales y cualquier autoridad sancionadora, facilitando su nombre, DNI, domicilio y datos del permiso de conducir, en cumplimiento del deber de identificación del titular previsto en la Ley sobre Tráfico, Circulación de Vehículos a Motor y Seguridad Vial. El Cesionario responderá frente al Cedente de la sanción que se imponga a la empresa por no identificación cuando ésta se deba a datos inexactos facilitados por él.
 
-Además de la sanción, el Cesionario abonará al Cedente **{{GASTOS_GESTION}} € por cada expediente** en concepto de gastos de gestión y tramitación.
+Además de la sanción, el Cesionario abonará al Cedente **el importe necesario en € por cada expediente** en concepto de gastos de gestión y tramitación.
 
 ## 5. Accidentes, robo y daños
 
 En caso de siniestro, robo, incendio, vandalismo o avería, el Cesionario deberá:
 
-a) Comunicarlo al Cedente en el teléfono {{TELEFONO_EMERGENCIA}} de forma inmediata y, en todo caso, antes de 24 horas.
+a) Comunicarlo al Cedente en el teléfono 696 769 211 de forma inmediata y, en todo caso, antes de 24 horas.
 b) Cumplimentar y remitir la declaración amistosa de accidente con los datos del otro implicado, testigos y fotografías.
 c) Presentar denuncia ante la Guardia Civil o Policía en caso de robo, vandalismo o daños de autor desconocido, y entregar copia al Cedente en 48 horas.
 d) No abandonar el vehículo sin adoptar medidas para su custodia, ni reconocer responsabilidad ni negociar con terceros o aseguradoras sin autorización del Cedente.
 
-**Responsabilidad económica:** el Cesionario responderá de los daños al vehículo y de los ocasionados a terceros que no queden cubiertos por la póliza, con el límite de la franquicia de **{{FRANQUICIA}} €** por siniestro cuando el daño esté cubierto por el seguro y no concurra ninguna de las causas del apartado siguiente.
+**Responsabilidad económica:** el Cesionario responderá de los daños al vehículo y de los ocasionados a terceros que no queden cubiertos por la póliza, con el límite de la franquicia de **4.000 €** por siniestro cuando el daño esté cubierto por el seguro y no concurra ninguna de las causas del apartado siguiente.
 
-**Responsabilidad íntegra (sin límite de franquicia):** el Cesionario responderá del importe total del daño, de la pérdida de valor del vehículo, de los gastos de peritación, grúa y traslado y del lucro cesante por inmovilización a razón de {{IMPORTE_DIA}} €/día cuando el siniestro derive de: conducción bajo los efectos de alcohol o drogas, abandono del lugar del accidente, conducción sin permiso válido, cesión a conductor no autorizado, uso contrario a la cláusula 3, repostaje o carga errónea, daños en la parte superior o inferior del vehículo por circular por lugares inadecuados, pérdida o rotura de llaves, negligencia grave o dolo, o cualquier supuesto excluido por la póliza. Se adjunta a este contrato el resumen de coberturas y exclusiones de la póliza nº {{POLIZA}} de {{ASEGURADORA}}, que el Cesionario declara conocer.
+**Responsabilidad íntegra (sin límite de franquicia):** el Cesionario responderá del importe total del daño, de la pérdida de valor del vehículo, de los gastos de peritación, grúa y traslado y del lucro cesante por inmovilización a razón de 400 €/día cuando el siniestro derive de: conducción bajo los efectos de alcohol o drogas, abandono del lugar del accidente, conducción sin permiso válido, cesión a conductor no autorizado, uso contrario a la cláusula 3, repostaje o carga errónea, daños en la parte superior o inferior del vehículo por circular por lugares inadecuados, pérdida o rotura de llaves, negligencia grave o dolo, o cualquier supuesto excluido por la póliza.
 
 ## 6. Combustible, carga, limpieza y devolución
 
-El vehículo se devolverá en la fecha, hora y lugar pactados, con el mismo nivel de carga/combustible y en el mismo estado de limpieza interior y exterior. En caso contrario se repercutirán al Cesionario los costes de repostaje/carga y limpieza más {{GASTOS_GESTION}} € de gestión. La demora en la devolución no autorizada devengará {{IMPORTE_DIA}} €/día y, transcurridas 48 horas desde el requerimiento, facultará al Cedente a denunciar la apropiación indebida del vehículo.
+El vehículo se devolverá en la fecha, hora y lugar pactados, con el mismo nivel de carga/combustible y en el mismo estado de limpieza interior y exterior. En caso contrario se repercutirán al Cesionario los costes de repostaje/carga y limpieza más los gastos de gestión correspondientes. La demora en la devolución no autorizada devengará 50 €/día y, transcurridas 48 horas desde el requerimiento, facultará al Cedente a denunciar la apropiación indebida del vehículo.
 
 ## 7. Gastos de circulación
 
@@ -78,7 +78,7 @@ El Cesionario responderá de los daños y perjuicios que cause a terceros con el
 
 ## 9. Protección de datos y telemática
 
-Responsable: {{EMPRESA}}. Los datos del Cesionario se tratan para gestionar la cesión, controlar el vehículo, atender siniestros, identificar al conductor ante las autoridades y reclamar los importes que procedan; base legal: ejecución del contrato, cumplimiento de obligaciones legales e interés legítimo del Cedente en la protección de su patrimonio. Se conservarán durante la vigencia del contrato y los plazos de prescripción legal. Podrán comunicarse a aseguradoras, autoridades de tráfico, fuerzas de seguridad, peritos y asesores. Derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad en {{EMAIL_RGPD}}.
+Responsable: {{EMPRESA}}. Los datos del Cesionario se tratan para gestionar la cesión, controlar el vehículo, atender siniestros, identificar al conductor ante las autoridades y reclamar los importes que procedan; base legal: ejecución del contrato, cumplimiento de obligaciones legales e interés legítimo del Cedente en la protección de su patrimonio. Se conservarán durante la vigencia del contrato y los plazos de prescripción legal. Podrán comunicarse a aseguradoras, autoridades de tráfico, fuerzas de seguridad, peritos y asesores. Derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad en rrhh@irmaxoinversiones.com y gerencia@irmaxoinversiones.com.
 
 **El Cesionario queda informado de que el vehículo incorpora un sistema de geolocalización y telemática** activo durante el periodo de cesión, cuyos datos (posición, kilometraje, estado técnico, eventos de conducción) se tratan con las finalidades anteriores. Si el Cesionario es empleado, el tratamiento se limita al ámbito y horario en que se autoriza el uso del vehículo, conforme al artículo 90 de la LO 3/2018.
 
@@ -102,5 +102,8 @@ Declaro que he leído íntegramente este contrato, que comprendo y acepto todas 
 
 En {{LUGAR}}, a {{FECHA}}
 
-Firma del Cesionario: ______________________  Firma por el Cedente: ______________________
-{{NOMBRE_APELLIDOS}} · DNI {{DNI}}                {{RESPONSABLE_EMPRESA}}
+**Firma del Cesionario** (manuscrita con el dedo, capturada en la app y archivada junto a este contrato):
+{{NOMBRE_APELLIDOS}} · DNI {{DNI}}
+
+**Firma por el Cedente** (firma digital predeterminada, estampada automáticamente al generarse este contrato):
+IR MAXOINVERSIONES, S.L.U. · CIF B-76185586 · Firmado digitalmente el {{FECHA_HORA_ENTREGA}}

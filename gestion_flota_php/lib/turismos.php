@@ -449,16 +449,15 @@ function turismo_solicitar(PDO $pdo, array $cuerpo, array $usuario): array
     $nivel      = trim((string) ($cuerpo['nivel'] ?? ''));
     $accesorios = trim((string) ($cuerpo['accesorios'] ?? '')) ?: 'Ninguno';
     $danos      = trim((string) ($cuerpo['danos'] ?? '')) ?: 'Sin daños anotados';
-    $finalidad  = trim((string) ($cuerpo['finalidad'] ?? ''));
+    // Reason: la empresa solo cede los coches para trabajo; la finalidad
+    // es fija y no se pregunta.
+    $finalidad  = 'Exclusivamente profesional';
 
     if ($km === '' || !preg_match('/^\d{1,7}$/', $km)) {
         throw new ErrorHttp(422, 'Indica los kilómetros que marca el coche (solo números)');
     }
     if ($nivel === '' || !is_numeric($nivel) || (float) $nivel < 0 || (float) $nivel > 100) {
         throw new ErrorHttp(422, 'Indica la carga/combustible en % (de 0 a 100)');
-    }
-    if (!in_array($finalidad, ['Exclusivamente profesional', 'Profesional y uso personal autorizado'], true)) {
-        throw new ErrorHttp(422, 'Elige la finalidad de la cesión');
     }
 
     // Reason: si la cuenta ya se creó con los datos de la persona, mandan
@@ -757,7 +756,6 @@ function turismos_contrato_relleno(array $d, array $veh): string
         '{{NIVEL}}'                  => $d['nivel'],
         '{{ACCESORIOS}}'             => $d['accesorios'],
         '{{DANOS_PREVIOS}}'          => $d['danos'],
-        '{{FINALIDAD}}'              => $d['finalidad'],
         '{{MATRICULA}}'              => $veh['matricula'],
         '{{MARCA_MODELO}}'           => $veh['modelo'] ?: '—',
         '{{FECHA_HORA_ENTREGA}}'     => date('d/m/Y H:i'),

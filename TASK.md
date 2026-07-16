@@ -156,6 +156,18 @@
   devolver; el historial de solicitudes firmadas se conserva para las
   auditorías). Verificado por API y Playwright.
 
+- [x] **2026-07-16** — Turismos: contrato definitivo sin ningún hueco.
+  Finalidad fija "Exclusivamente profesional" (eliminada la opción de uso
+  personal, del formulario y del contrato); conductor autorizado (3b) = el
+  propio cesionario; apartado 4 "el importe necesario en € por cada
+  expediente"; teléfono de siniestros/robo 696 769 211; franquicia 4.000 €;
+  responsabilidad íntegra 400 €/día; demora de devolución 50 €/día;
+  eliminada la referencia al resumen de coberturas de la póliza; derechos
+  RGPD a rrhh@ y gerencia@irmaxoinversiones.com. Una sola firma manuscrita
+  (el cesionario) + firma digital predeterminada de IR MAXOINVERSIONES,
+  S.L.U. estampada automáticamente al generarse el contrato. Verificado:
+  contrato archivado con 0 huecos "____" y 0 placeholders.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.

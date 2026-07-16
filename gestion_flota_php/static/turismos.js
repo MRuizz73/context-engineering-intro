@@ -217,7 +217,6 @@ function abrirSolicitudTurismo(id) {
     document.getElementById("sol-telefono").value = localStorage.getItem("turismo-telefono") || "";
   }
   document.getElementById("sol-motivo").value = "";
-  document.getElementById("sol-finalidad").value = "Exclusivamente profesional";
   ["sol-km", "sol-nivel", "sol-accesorios", "sol-danos"].forEach(
     (id) => (document.getElementById(id).value = "")
   );
@@ -230,7 +229,7 @@ async function continuarAlContrato(evento) {
     nombre: document.getElementById("sol-nombre").value.trim(),
     telefono: document.getElementById("sol-telefono").value.trim(),
     motivo: document.getElementById("sol-motivo").value.trim(),
-    finalidad: document.getElementById("sol-finalidad").value,
+    finalidad: "Exclusivamente profesional",
     km: document.getElementById("sol-km").value.trim(),
     nivel: document.getElementById("sol-nivel").value.trim(),
     accesorios: document.getElementById("sol-accesorios").value.trim() || "Ninguno",
@@ -265,7 +264,6 @@ async function continuarAlContrato(evento) {
     .replaceAll("{{NIVEL}}", solicitudDatos.nivel)
     .replaceAll("{{ACCESORIOS}}", solicitudDatos.accesorios)
     .replaceAll("{{DANOS_PREVIOS}}", solicitudDatos.danos)
-    .replaceAll("{{FINALIDAD}}", solicitudDatos.finalidad)
     .replaceAll("{{MATRICULA}}", vehiculoElegido.matricula)
     .replaceAll("{{MARCA_MODELO}}", vehiculoElegido.modelo || "—")
     .replaceAll("{{FECHA_HORA_ENTREGA}}", fechaHora)
