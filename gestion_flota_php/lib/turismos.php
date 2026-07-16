@@ -10,6 +10,11 @@
  */
 declare(strict_types=1);
 
+// Reason: la empresa está en Fuerteventura y el servidor suele estar en
+// hora peninsular (o UTC); sin esto, los contratos y el registro salían
+// con una hora que no es la canaria.
+date_default_timezone_set('Atlantic/Canary');
+
 // Texto que ocupa el hueco "hasta ..." del contrato mientras el coche no se
 // devuelve; al confirmar la devolución se sustituye por la fecha y hora real.
 const TURISMO_PENDIENTE_DEVOLUCION = 'pendiente de devolución (se completa al devolverlo en la app)';

@@ -168,6 +168,12 @@
   S.L.U. estampada automáticamente al generarse el contrato. Verificado:
   contrato archivado con 0 huecos "____" y 0 placeholders.
 
+- [x] **2026-07-16** — Turismos (feedback de RRHH): correo de protección de
+  datos del contrato cambiado a lopd@irmaxoinversiones.com, y todo el
+  módulo pasa a hora canaria (Atlantic/Canary) aunque el servidor esté en
+  hora peninsular o UTC (verificado con el servidor forzado a
+  Europe/Madrid: guarda la hora de Canarias).
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.
