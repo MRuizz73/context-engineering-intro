@@ -10,6 +10,10 @@
  */
 declare(strict_types=1);
 
+// Texto que ocupa el hueco "hasta ..." del contrato mientras el coche no se
+// devuelve; al confirmar la devolución se sustituye por la fecha y hora real.
+const TURISMO_PENDIENTE_DEVOLUCION = 'pendiente de devolución (se completa al devolverlo en la app)';
+
 // ---------- esquema y siembra ----------
 
 /** Crea las tablas del módulo si no existen y siembra los vehículos del CSV. */
@@ -59,7 +63,12 @@ function turismos_asegurar_esquema(PDO $pdo): void
             nombre VARCHAR(150) NOT NULL,
             email VARCHAR(190) NOT NULL,
             dni VARCHAR(20) NULL,
-            telefono VARCHAR(50) NULL
+            telefono VARCHAR(50) NULL,
+            domicilio VARCHAR(200) NULL,
+            permiso VARCHAR(30) NULL,
+            clase_permiso VARCHAR(15) NULL,
+            permiso_caduca VARCHAR(10) NULL,
+            empleado TINYINT NOT NULL DEFAULT 1
         )$motor",
     ];
     foreach ($tablas as $sql) {
@@ -69,7 +78,17 @@ function turismos_asegurar_esquema(PDO $pdo): void
     // Columnas añadidas después de la primera versión del módulo.
     turismos_asegurar_columna($pdo, 'turismo_usuario', 'dni', 'VARCHAR(20) NULL');
     turismos_asegurar_columna($pdo, 'turismo_usuario', 'telefono', 'VARCHAR(50) NULL');
+    turismos_asegurar_columna($pdo, 'turismo_usuario', 'domicilio', 'VARCHAR(200) NULL');
+    turismos_asegurar_columna($pdo, 'turismo_usuario', 'permiso', 'VARCHAR(30) NULL');
+    turismos_asegurar_columna($pdo, 'turismo_usuario', 'clase_permiso', 'VARCHAR(15) NULL');
+    turismos_asegurar_columna($pdo, 'turismo_usuario', 'permiso_caduca', 'VARCHAR(10) NULL');
+    turismos_asegurar_columna($pdo, 'turismo_usuario', 'empleado', 'TINYINT NOT NULL DEFAULT 1');
     turismos_asegurar_columna($pdo, 'turismo_solicitud', 'dni', 'VARCHAR(20) NULL');
+    turismos_asegurar_columna($pdo, 'turismo_solicitud', 'km', 'VARCHAR(20) NULL');
+    turismos_asegurar_columna($pdo, 'turismo_solicitud', 'nivel', 'VARCHAR(10) NULL');
+    turismos_asegurar_columna($pdo, 'turismo_solicitud', 'accesorios', 'VARCHAR(200) NULL');
+    turismos_asegurar_columna($pdo, 'turismo_solicitud', 'danos', 'TEXT NULL');
+    turismos_asegurar_columna($pdo, 'turismo_solicitud', 'finalidad', 'VARCHAR(80) NULL');
 
     $csv = __DIR__ . '/../vehiculos_iniciales.csv';
     if ((int) $pdo->query('SELECT COUNT(*) FROM vehiculo')->fetchColumn() === 0 && file_exists($csv)) {
@@ -156,7 +175,11 @@ function turismos_enrutar(PDO $pdo, string $metodo, array $seg, array $cuerpo): 
     // pedirlos al solicitar un coche (solo pregunta el motivo).
     if ($r === 'yo' && $metodo === 'GET') {
         $perfil = turismo_perfil_usuario($pdo, (int) $usuario['id']);
-        return $perfil ?? ['nombre' => null, 'dni' => null, 'telefono' => null, 'email' => null];
+        return $perfil ?? [
+            'nombre' => null, 'dni' => null, 'telefono' => null, 'email' => null,
+            'domicilio' => null, 'permiso' => null, 'clase_permiso' => null,
+            'permiso_caduca' => null, 'empleado' => null,
+        ];
     }
 
     if ($r === 'vehiculos') {
@@ -201,7 +224,8 @@ function turismos_enrutar(PDO $pdo, string $metodo, array $seg, array $cuerpo): 
         requiere_admin();
         if ($metodo === 'GET') {
             return $pdo->query(
-                'SELECT t.nombre, t.email, t.dni, t.telefono, u.username FROM turismo_usuario t
+                'SELECT t.nombre, t.email, t.dni, t.telefono, t.empleado, u.username
+                 FROM turismo_usuario t
                  JOIN usuario u ON u.id = t.usuario_id ORDER BY t.nombre'
             )->fetchAll();
         }
@@ -352,6 +376,11 @@ function turismo_solicitud_a_read(array $f, bool $con_detalle = false): array
         'telefono'         => $f['telefono'],
         'dni'              => $f['dni'] ?? null,
         'motivo'           => $f['motivo'],
+        'km'               => $f['km'] ?? null,
+        'nivel'            => $f['nivel'] ?? null,
+        'accesorios'       => $f['accesorios'] ?? null,
+        'danos'            => $f['danos'] ?? null,
+        'finalidad'        => $f['finalidad'] ?? null,
         'fecha_solicitud'  => $f['fecha_solicitud'],
         'lat_solicitud'    => $f['lat_solicitud'] !== null ? (float) $f['lat_solicitud'] : null,
         'lng_solicitud'    => $f['lng_solicitud'] !== null ? (float) $f['lng_solicitud'] : null,
@@ -389,10 +418,18 @@ function turismos_solicitudes_listar(PDO $pdo, ?int $solo_usuario_id): array
 /** Datos de la cuenta de vehículos del usuario (o null si no tiene). */
 function turismo_perfil_usuario(PDO $pdo, int $usuario_id): ?array
 {
-    $stmt = $pdo->prepare('SELECT nombre, dni, telefono, email FROM turismo_usuario WHERE usuario_id = ?');
+    $stmt = $pdo->prepare(
+        'SELECT nombre, dni, telefono, email, domicilio, permiso, clase_permiso,
+                permiso_caduca, empleado
+         FROM turismo_usuario WHERE usuario_id = ?'
+    );
     $stmt->execute([$usuario_id]);
     $fila = $stmt->fetch();
-    return $fila === false ? null : $fila;
+    if ($fila === false) {
+        return null;
+    }
+    $fila['empleado'] = (bool) $fila['empleado'];
+    return $fila;
 }
 
 /** POST /api/turismos/solicitudes — pedir un coche con contrato firmado. */
@@ -405,6 +442,23 @@ function turismo_solicitar(PDO $pdo, array $cuerpo, array $usuario): array
     $motivo   = trim((string) ($cuerpo['motivo'] ?? ''));
     $firma    = (string) ($cuerpo['firma'] ?? '');
 
+    // Estado del vehículo en la entrega (cuestionario extra del contrato).
+    $km         = trim((string) ($cuerpo['km'] ?? ''));
+    $nivel      = trim((string) ($cuerpo['nivel'] ?? ''));
+    $accesorios = trim((string) ($cuerpo['accesorios'] ?? '')) ?: 'Ninguno';
+    $danos      = trim((string) ($cuerpo['danos'] ?? '')) ?: 'Sin daños anotados';
+    $finalidad  = trim((string) ($cuerpo['finalidad'] ?? ''));
+
+    if ($km === '' || !preg_match('/^\d{1,7}$/', $km)) {
+        throw new ErrorHttp(422, 'Indica los kilómetros que marca el coche (solo números)');
+    }
+    if ($nivel === '' || !is_numeric($nivel) || (float) $nivel < 0 || (float) $nivel > 100) {
+        throw new ErrorHttp(422, 'Indica la carga/combustible en % (de 0 a 100)');
+    }
+    if (!in_array($finalidad, ['Exclusivamente profesional', 'Profesional y uso personal autorizado'], true)) {
+        throw new ErrorHttp(422, 'Elige la finalidad de la cesión');
+    }
+
     // Reason: si la cuenta ya se creó con los datos de la persona, mandan
     // los de la cuenta (no se le vuelven a pedir ni puede cambiarlos aquí).
     $perfil = turismo_perfil_usuario($pdo, (int) $usuario['id']);
@@ -412,6 +466,12 @@ function turismo_solicitar(PDO $pdo, array $cuerpo, array $usuario): array
         $nombre   = trim((string) $perfil['nombre']) ?: $nombre;
         $telefono = trim((string) ($perfil['telefono'] ?? '')) ?: $telefono;
         $dni      = trim((string) ($perfil['dni'] ?? '')) ?: $dni;
+        $caduca = trim((string) ($perfil['permiso_caduca'] ?? ''));
+        if ($caduca !== '' && $caduca < date('Y-m-d')) {
+            throw new ErrorHttp(422, 'Tu permiso de conducir figura caducado desde el '
+                . DateTimeImmutable::createFromFormat('!Y-m-d', $caduca)->format('d/m/Y')
+                . '. Habla con el responsable para actualizarlo.');
+        }
     }
 
     if ($nombre === '' || $telefono === '' || $motivo === '') {
@@ -438,15 +498,32 @@ function turismo_solicitar(PDO $pdo, array $cuerpo, array $usuario): array
     }
 
     [$lat, $lng] = turismo_coordenadas($cuerpo);
-    $contrato = turismos_contrato_relleno($nombre, $telefono, $veh, $dni, $perfil['email'] ?? '');
+    $contrato = turismos_contrato_relleno([
+        'nombre'     => $nombre,
+        'telefono'   => $telefono,
+        'dni'        => $dni,
+        'email'      => (string) ($perfil['email'] ?? ''),
+        'domicilio'  => (string) ($perfil['domicilio'] ?? ''),
+        'permiso'    => (string) ($perfil['permiso'] ?? ''),
+        'clase'      => (string) ($perfil['clase_permiso'] ?? ''),
+        'caducidad'  => (string) ($perfil['permiso_caduca'] ?? ''),
+        'empleado'   => $perfil !== null ? (bool) $perfil['empleado'] : null,
+        'km'         => $km,
+        'nivel'      => $nivel,
+        'accesorios' => $accesorios,
+        'danos'      => $danos,
+        'finalidad'  => $finalidad,
+    ], $veh);
     $token = bin2hex(random_bytes(16));
 
     $pdo->prepare(
         'INSERT INTO turismo_solicitud (vehiculo_id, usuario_id, nombre, telefono, dni, motivo,
+             km, nivel, accesorios, danos, finalidad,
              fecha_solicitud, lat_solicitud, lng_solicitud, contrato, firma, ip, user_agent, token)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )->execute([
         $vehiculo_id, (int) $usuario['id'], $nombre, $telefono, $dni ?: null, $motivo,
+        $km, $nivel, $accesorios, $danos, $finalidad,
         date('Y-m-d H:i:s'), $lat, $lng, $contrato, $firma,
         substr((string) ($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45),
         substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255),
@@ -467,6 +544,14 @@ function turismo_devolver(PDO $pdo, array $sol, array $cuerpo, string $via): arr
         'UPDATE turismo_solicitud SET fecha_devolucion = ?, lat_devolucion = ?, lng_devolucion = ?, devuelto_via = ?
          WHERE id = ?'
     )->execute([date('Y-m-d H:i:s'), $lat, $lng, $via, $sol['id']]);
+
+    // El periodo de cesión del contrato archivado se completa al devolver:
+    // el hueco "hasta ..." pasa a ser la fecha y hora reales de devolución.
+    if (!empty($sol['contrato']) && str_contains((string) $sol['contrato'], TURISMO_PENDIENTE_DEVOLUCION)) {
+        $contrato = str_replace(TURISMO_PENDIENTE_DEVOLUCION, date('d/m/Y H:i'), (string) $sol['contrato']);
+        $pdo->prepare('UPDATE turismo_solicitud SET contrato = ? WHERE id = ?')
+            ->execute([$contrato, $sol['id']]);
+    }
     return turismo_solicitud_a_read(turismo_solicitud_fila($pdo, (int) $sol['id']));
 }
 
@@ -486,17 +571,30 @@ function turismo_coordenadas(array $cuerpo): array
 /** POST /api/turismos/usuarios — botón "Crear usuario de vehículos". */
 function turismo_usuario_crear(PDO $pdo, array $cuerpo): array
 {
-    $nombre   = trim((string) ($cuerpo['nombre'] ?? ''));
-    $email    = strtolower(trim((string) ($cuerpo['email'] ?? '')));
-    $dni      = strtoupper(trim((string) ($cuerpo['dni'] ?? '')));
-    $telefono = trim((string) ($cuerpo['telefono'] ?? ''));
+    $nombre    = trim((string) ($cuerpo['nombre'] ?? ''));
+    $email     = strtolower(trim((string) ($cuerpo['email'] ?? '')));
+    $dni       = strtoupper(trim((string) ($cuerpo['dni'] ?? '')));
+    $telefono  = trim((string) ($cuerpo['telefono'] ?? ''));
+    $domicilio = trim((string) ($cuerpo['domicilio'] ?? ''));
+    $permiso   = strtoupper(trim((string) ($cuerpo['permiso'] ?? '')));
+    $clase     = strtoupper(trim((string) ($cuerpo['clase_permiso'] ?? '')));
+    $caduca    = trim((string) ($cuerpo['permiso_caduca'] ?? ''));
+    $empleado  = !empty($cuerpo['empleado']) ? 1 : 0;
+
     if ($nombre === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         throw new ErrorHttp(422, 'Hacen falta el nombre y un email válido');
     }
-    // Reason: con DNI y teléfono en la cuenta, al solicitar un coche ya no
-    // se le vuelven a pedir sus datos: solo el motivo.
-    if ($dni === '' || $telefono === '') {
-        throw new ErrorHttp(422, 'Hacen falta también el DNI y el teléfono (así no se le piden al solicitar un coche)');
+    // Reason: con todos los datos en la cuenta, el contrato de cesión sale
+    // completo y al solicitar un coche solo se pregunta el motivo y el
+    // estado del vehículo.
+    if ($dni === '' || $telefono === '' || $domicilio === '' || $permiso === '' || $clase === '') {
+        throw new ErrorHttp(422, 'Faltan datos: DNI, teléfono, domicilio y permiso de conducir (nº y clase) son necesarios para el contrato');
+    }
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $caduca)) {
+        throw new ErrorHttp(422, 'Indica hasta cuándo es válido el permiso de conducir');
+    }
+    if ($caduca < date('Y-m-d')) {
+        throw new ErrorHttp(422, 'Ese permiso de conducir ya está caducado');
     }
     $stmt = $pdo->prepare('SELECT id FROM turismo_usuario WHERE email = ?');
     $stmt->execute([$email]);
@@ -521,8 +619,12 @@ function turismo_usuario_crear(PDO $pdo, array $cuerpo): array
     $password = generar_password();
     $pdo->prepare('INSERT INTO usuario (username, password_hash, rol, chofer_id) VALUES (?, ?, ?, NULL)')
         ->execute([$candidato, password_hash($password, PASSWORD_DEFAULT), 'vehiculos']);
-    $pdo->prepare('INSERT INTO turismo_usuario (usuario_id, nombre, email, dni, telefono) VALUES (?, ?, ?, ?, ?)')
-        ->execute([(int) $pdo->lastInsertId(), $nombre, $email, $dni, $telefono]);
+    $pdo->prepare(
+        'INSERT INTO turismo_usuario (usuario_id, nombre, email, dni, telefono,
+             domicilio, permiso, clase_permiso, permiso_caduca, empleado)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    )->execute([(int) $pdo->lastInsertId(), $nombre, $email, $dni, $telefono,
+                $domicilio, $permiso, $clase, $caduca, $empleado]);
 
     http_response_code(201);
     return ['username' => $candidato, 'password' => $password, 'nombre' => $nombre, 'email' => $email];
@@ -547,17 +649,36 @@ function turismos_contrato_plantilla(): string
 }
 
 /** Contrato definitivo que se archiva con la solicitud (prueba de la firma). */
-function turismos_contrato_relleno(string $nombre, string $telefono, array $veh, string $dni = '', string $email = ''): string
+function turismos_contrato_relleno(array $d, array $veh): string
 {
+    $caduca = '';
+    if (!empty($d['caducidad']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $d['caducidad'])) {
+        $caduca = DateTimeImmutable::createFromFormat('!Y-m-d', $d['caducidad'])->format('d/m/Y');
+    }
+    $relacion = '________';
+    if ($d['empleado'] !== null) {
+        $relacion = $d['empleado'] ? '☑ Empleado' : '☑ Colaborador/tercero (no empleado)';
+    }
     $texto = strtr(turismos_contrato_plantilla(), [
-        '{{NOMBRE_APELLIDOS}}'    => $nombre,
-        '{{TELEFONO}}'            => $telefono,
-        '{{DNI}}'                 => $dni ?: '________',
-        '{{EMAIL}}'               => $email ?: '________',
-        '{{MATRICULA}}'           => $veh['matricula'],
-        '{{MARCA_MODELO}}'        => $veh['modelo'] ?: '—',
-        '{{FECHA_HORA_ENTREGA}}'  => date('d/m/Y H:i'),
-        '{{FECHA}}'               => date('d/m/Y'),
+        '{{NOMBRE_APELLIDOS}}'       => $d['nombre'],
+        '{{TELEFONO}}'               => $d['telefono'],
+        '{{DNI}}'                    => $d['dni'] ?: '________',
+        '{{EMAIL}}'                  => $d['email'] ?: '________',
+        '{{DOMICILIO}}'              => $d['domicilio'] ?: '________',
+        '{{PERMISO}}'                => $d['permiso'] ?: '________',
+        '{{CLASE}}'                  => $d['clase'] ?: '________',
+        '{{CADUCIDAD}}'              => $caduca ?: '________',
+        '{{RELACION}}'               => $relacion,
+        '{{KM}}'                     => $d['km'],
+        '{{NIVEL}}'                  => $d['nivel'],
+        '{{ACCESORIOS}}'             => $d['accesorios'],
+        '{{DANOS_PREVIOS}}'          => $d['danos'],
+        '{{FINALIDAD}}'              => $d['finalidad'],
+        '{{MATRICULA}}'              => $veh['matricula'],
+        '{{MARCA_MODELO}}'           => $veh['modelo'] ?: '—',
+        '{{FECHA_HORA_ENTREGA}}'     => date('d/m/Y H:i'),
+        '{{FECHA_HORA_DEVOLUCION}}'  => TURISMO_PENDIENTE_DEVOLUCION,
+        '{{FECHA}}'                  => date('d/m/Y'),
     ]);
     // Reason: los campos sin dato (DNI, franquicia…) quedan como raya para
     // que el documento archivado sea legible y no muestre {{PLACEHOLDERS}}.

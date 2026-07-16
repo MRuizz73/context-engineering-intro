@@ -59,11 +59,13 @@ function exportarRegistroTurismos() {
   const campo = (v) => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`;
   const coord = (lat, lng) => (lat == null || lng == null ? "" : `${lat},${lng}`);
   const filas = [
-    ["Matrícula", "Modelo", "Nombre", "Teléfono", "Motivo", "Fecha solicitud",
+    ["Matrícula", "Modelo", "Nombre", "DNI", "Teléfono", "Motivo", "Finalidad",
+     "Km entrega", "Carga %", "Accesorios", "Daños previos", "Fecha solicitud",
      "Ubicación solicitud", "Fecha devolución", "Ubicación devolución",
      "Devuelto vía", "Días de uso", "Estado"],
     ...lista.map((s) => [
-      s.matricula, s.modelo || "", s.nombre, s.telefono, s.motivo,
+      s.matricula, s.modelo || "", s.nombre, s.dni || "", s.telefono, s.motivo,
+      s.finalidad || "", s.km || "", s.nivel || "", s.accesorios || "", s.danos || "",
       s.fecha_solicitud, coord(s.lat_solicitud, s.lng_solicitud),
       s.fecha_devolucion || "", coord(s.lat_devolucion, s.lng_devolucion),
       s.devuelto_via || "", s.dias_en_uso, s.devuelta ? "Devuelto" : "En uso",
@@ -137,9 +139,10 @@ async function guardarVehiculo(evento) {
 // ---------- usuarios de vehículos ----------
 
 function abrirUsuarioVehiculos() {
-  ["uv-nombre", "uv-dni", "uv-telefono", "uv-email"].forEach(
+  ["uv-nombre", "uv-dni", "uv-telefono", "uv-email", "uv-domicilio", "uv-permiso", "uv-clase", "uv-caduca"].forEach(
     (id) => (document.getElementById(id).value = "")
   );
+  document.getElementById("uv-empleado").value = "1";
   document.getElementById("modal-usuario-vehiculos").classList.remove("oculta");
 }
 
@@ -152,6 +155,11 @@ async function crearUsuarioVehiculos(evento) {
       dni: document.getElementById("uv-dni").value.trim(),
       telefono: document.getElementById("uv-telefono").value.trim(),
       email: document.getElementById("uv-email").value.trim(),
+      domicilio: document.getElementById("uv-domicilio").value.trim(),
+      permiso: document.getElementById("uv-permiso").value.trim(),
+      clase_permiso: document.getElementById("uv-clase").value.trim(),
+      permiso_caduca: document.getElementById("uv-caduca").value,
+      empleado: document.getElementById("uv-empleado").value === "1",
     }),
   });
   cerrarModalTurismo("modal-usuario-vehiculos");

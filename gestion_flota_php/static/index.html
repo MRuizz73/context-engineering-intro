@@ -324,6 +324,20 @@
         </div>
       </div>
       <label>¿Para qué necesitas el coche? <textarea id="sol-motivo" rows="2" required placeholder="Motivo de la solicitud"></textarea></label>
+      <label>Finalidad de la cesión
+        <select id="sol-finalidad" required>
+          <option value="Exclusivamente profesional">Exclusivamente profesional</option>
+          <option value="Profesional y uso personal autorizado">Profesional y uso personal autorizado</option>
+        </select>
+      </label>
+      <h3 style="margin:0.7rem 0 0.2rem">🔍 Estado del vehículo en la entrega</h3>
+      <p class="ayuda">Mira el coche antes de llevártelo: esto queda en el contrato.</p>
+      <div class="fila">
+        <label>Km que marca <input id="sol-km" type="number" min="0" max="9999999" required inputmode="numeric" placeholder="Ej: 45200"></label>
+        <label>Carga/combustible (%) <input id="sol-nivel" type="number" min="0" max="100" required inputmode="numeric" placeholder="0 a 100"></label>
+      </div>
+      <label>Accesorios que lleva <input id="sol-accesorios" placeholder="Ej: cargador, triángulos, chaleco (vacío = ninguno)"></label>
+      <label>¿Algún daño previo que quieras anotar? <textarea id="sol-danos" rows="2" placeholder="Ej: arañazo en la puerta trasera derecha (vacío = sin daños)"></textarea></label>
       <div class="acciones">
         <button type="submit" class="btn-marca">Continuar → contrato</button>
         <button type="button" onclick="cerrarModalTurismo('modal-solicitud-turismo')">Cancelar</button>
@@ -378,8 +392,8 @@
       <h3>👥 Crear usuario de vehículos</h3>
       <p class="ayuda">
         Esta cuenta SOLO puede solicitar y devolver turismos (no ve nada más).
-        Con sus datos guardados, al pedir un coche solo se le pregunta el motivo.
-        El email se usa para avisarle si pasa 7 días sin devolver un coche.
+        Con estos datos el contrato de cesión sale completo, sin huecos en
+        blanco. El email se usa para avisarle si pasa 7 días sin devolver un coche.
       </p>
       <div class="fila">
         <label>Nombre y apellidos <input id="uv-nombre" required></label>
@@ -389,6 +403,18 @@
         <label>Teléfono <input id="uv-telefono" type="tel" required></label>
         <label>Email <input id="uv-email" type="email" required placeholder="persona@email.com"></label>
       </div>
+      <label>Domicilio <input id="uv-domicilio" required placeholder="Calle, número, municipio"></label>
+      <div class="fila">
+        <label>Permiso de conducir nº <input id="uv-permiso" required placeholder="Suele ser el DNI"></label>
+        <label>Clase <input id="uv-clase" required placeholder="B" style="text-transform:uppercase"></label>
+        <label>Válido hasta <input id="uv-caduca" type="date" required></label>
+      </div>
+      <label>Relación con la empresa
+        <select id="uv-empleado">
+          <option value="1">Empleado</option>
+          <option value="0">Colaborador/tercero (no empleado)</option>
+        </select>
+      </label>
       <div class="acciones">
         <button type="submit" class="btn-primario">Crear cuenta</button>
         <button type="button" onclick="cerrarModalTurismo('modal-usuario-vehiculos')">Cancelar</button>
@@ -425,7 +451,7 @@
   <script src="static/buscador.js?v=7"></script>
   <script src="static/app.js?v=7"></script>
   <script src="static/perfil.js?v=7"></script>
-  <script src="static/turismos.js?v=2"></script>
-  <script src="static/turismos_admin.js?v=2"></script>
+  <script src="static/turismos.js?v=3"></script>
+  <script src="static/turismos_admin.js?v=3"></script>
 </body>
 </html>

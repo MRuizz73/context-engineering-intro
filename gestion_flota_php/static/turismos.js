@@ -16,6 +16,8 @@ let vehiculoElegido = null;
 let solicitudDatos = null;   // {nombre, telefono, motivo} del paso 1
 let contratoPlantilla = null;
 const tokenDevolucion = new URLSearchParams(location.search).get("devolucion");
+// Debe coincidir con TURISMO_PENDIENTE_DEVOLUCION del servidor.
+const PENDIENTE_DEVOLUCION = "pendiente de devolución (se completa al devolverlo en la app)";
 
 // ---------- integración con la app existente (sin modificar auth.js) ----------
 
@@ -213,6 +215,10 @@ function abrirSolicitudTurismo(id) {
     document.getElementById("sol-telefono").value = localStorage.getItem("turismo-telefono") || "";
   }
   document.getElementById("sol-motivo").value = "";
+  document.getElementById("sol-finalidad").value = "Exclusivamente profesional";
+  ["sol-km", "sol-nivel", "sol-accesorios", "sol-danos"].forEach(
+    (id) => (document.getElementById(id).value = "")
+  );
   document.getElementById("modal-solicitud-turismo").classList.remove("oculta");
 }
 
@@ -222,6 +228,11 @@ async function continuarAlContrato(evento) {
     nombre: document.getElementById("sol-nombre").value.trim(),
     telefono: document.getElementById("sol-telefono").value.trim(),
     motivo: document.getElementById("sol-motivo").value.trim(),
+    finalidad: document.getElementById("sol-finalidad").value,
+    km: document.getElementById("sol-km").value.trim(),
+    nivel: document.getElementById("sol-nivel").value.trim(),
+    accesorios: document.getElementById("sol-accesorios").value.trim() || "Ninguno",
+    danos: document.getElementById("sol-danos").value.trim() || "Sin daños anotados",
   };
   if (!miPerfilTurismos) {
     localStorage.setItem("turismo-nombre", solicitudDatos.nombre);
@@ -234,14 +245,29 @@ async function continuarAlContrato(evento) {
   const ahora = new Date();
   const dosDigitos = (n) => String(n).padStart(2, "0");
   const fechaHora = `${dosDigitos(ahora.getDate())}/${dosDigitos(ahora.getMonth() + 1)}/${ahora.getFullYear()} ${dosDigitos(ahora.getHours())}:${dosDigitos(ahora.getMinutes())}`;
+  const p = miPerfilTurismos || {};
+  const relacion = p.empleado === null || p.empleado === undefined
+    ? "________"
+    : p.empleado ? "☑ Empleado" : "☑ Colaborador/tercero (no empleado)";
   const texto = contratoPlantilla
     .replaceAll("{{NOMBRE_APELLIDOS}}", solicitudDatos.nombre)
     .replaceAll("{{TELEFONO}}", solicitudDatos.telefono)
-    .replaceAll("{{DNI}}", (miPerfilTurismos && miPerfilTurismos.dni) || "________")
-    .replaceAll("{{EMAIL}}", (miPerfilTurismos && miPerfilTurismos.email) || "________")
+    .replaceAll("{{DNI}}", p.dni || "________")
+    .replaceAll("{{EMAIL}}", p.email || "________")
+    .replaceAll("{{DOMICILIO}}", p.domicilio || "________")
+    .replaceAll("{{PERMISO}}", p.permiso || "________")
+    .replaceAll("{{CLASE}}", p.clase_permiso || "________")
+    .replaceAll("{{CADUCIDAD}}", p.permiso_caduca ? fechaLegible(p.permiso_caduca) : "________")
+    .replaceAll("{{RELACION}}", relacion)
+    .replaceAll("{{KM}}", solicitudDatos.km)
+    .replaceAll("{{NIVEL}}", solicitudDatos.nivel)
+    .replaceAll("{{ACCESORIOS}}", solicitudDatos.accesorios)
+    .replaceAll("{{DANOS_PREVIOS}}", solicitudDatos.danos)
+    .replaceAll("{{FINALIDAD}}", solicitudDatos.finalidad)
     .replaceAll("{{MATRICULA}}", vehiculoElegido.matricula)
     .replaceAll("{{MARCA_MODELO}}", vehiculoElegido.modelo || "—")
     .replaceAll("{{FECHA_HORA_ENTREGA}}", fechaHora)
+    .replaceAll("{{FECHA_HORA_DEVOLUCION}}", PENDIENTE_DEVOLUCION)
     .replaceAll("{{FECHA}}", fechaHora.slice(0, 10))
     .replace(/\{\{[A-Z_]+\}\}/g, "________");
   document.getElementById("contrato-texto").innerHTML = markdownSimple(texto);
@@ -279,6 +305,11 @@ async function firmarYSolicitar(boton) {
         nombre: solicitudDatos.nombre,
         telefono: solicitudDatos.telefono,
         motivo: solicitudDatos.motivo,
+        finalidad: solicitudDatos.finalidad,
+        km: solicitudDatos.km,
+        nivel: solicitudDatos.nivel,
+        accesorios: solicitudDatos.accesorios,
+        danos: solicitudDatos.danos,
         acepta_contrato: true,
         firma: document.getElementById("firma-canvas").toDataURL("image/png"),
         lat: pos ? pos.lat : null,

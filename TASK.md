@@ -135,6 +135,19 @@
   DNI y email rellenos. Migración suave de columnas (ALTER idempotente).
   Verificado por API y Playwright en móvil 390×844.
 
+- [x] **2026-07-16** — Turismos: contrato de cesión sin huecos personales.
+  El alta de usuario pide ahora también domicilio, permiso de conducir
+  (nº, clase y válido hasta) y relación con la empresa (empleado o
+  colaborador/tercero → soporte de cesión a no empleados); la solicitud
+  añade un cuestionario de estado en la entrega (km, carga/combustible %,
+  accesorios, daños previos declarados) y la finalidad de la cesión.
+  Quitado el bastidor del contrato; el "hasta" del periodo de cesión se
+  completa automáticamente en el contrato archivado al confirmar la
+  devolución. Bloqueos: no se crea cuenta con permiso caducado ni se puede
+  solicitar coche con el permiso vencido. CSV de auditoría ampliado (DNI,
+  finalidad, km, carga, accesorios, daños). Verificado por API (contrato
+  archivado con 0 placeholders personales) y Playwright móvil 390×844.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.

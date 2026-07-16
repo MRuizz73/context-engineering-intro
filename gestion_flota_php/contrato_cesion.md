@@ -5,13 +5,13 @@
 
 **Cesionario:** {{NOMBRE_APELLIDOS}} · DNI/NIE {{DNI}} · Domicilio {{DOMICILIO}} · Tel. {{TELEFONO}} · Email {{EMAIL}}
 Permiso de conducir nº {{PERMISO}} · Clase {{CLASE}} · Válido hasta {{CADUCIDAD}}
-Relación con la empresa: ☐ Empleado ☐ Colaborador/tercero
+Relación con la empresa: {{RELACION}}
 
-**Vehículo:** {{MARCA_MODELO}} · Matrícula {{MATRICULA}} · Bastidor {{VIN}}
+**Vehículo:** {{MARCA_MODELO}} · Matrícula {{MATRICULA}}
 **Periodo de cesión:** desde {{FECHA_HORA_ENTREGA}} hasta {{FECHA_HORA_DEVOLUCION}}
 **Lugar de entrega y devolución:** {{LUGAR}}
-**Estado en la entrega:** Km {{KM}} · Carga/combustible {{NIVEL}}% · Accesorios: {{ACCESORIOS}} · Daños previos: los recogidos en el parte gráfico y en las fotografías anexas a esta firma.
-**Finalidad de la cesión:** ☐ Exclusivamente profesional ☐ Profesional y uso personal autorizado
+**Estado en la entrega:** Km {{KM}} · Carga/combustible {{NIVEL}}% · Accesorios: {{ACCESORIOS}} · Daños previos declarados: {{DANOS_PREVIOS}}
+**Finalidad de la cesión:** {{FINALIDAD}}
 
 ---
 
