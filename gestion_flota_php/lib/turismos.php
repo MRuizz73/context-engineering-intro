@@ -222,15 +222,17 @@ function turismos_enrutar(PDO $pdo, string $metodo, array $seg, array $cuerpo): 
 
     if ($r === 'usuarios') {
         requiere_admin();
-        if ($metodo === 'GET') {
-            return $pdo->query(
-                'SELECT t.nombre, t.email, t.dni, t.telefono, t.empleado, u.username
-                 FROM turismo_usuario t
-                 JOIN usuario u ON u.id = t.usuario_id ORDER BY t.nombre'
-            )->fetchAll();
+        if ($metodo === 'GET' && $id === null) {
+            return turismos_usuarios_listar($pdo);
         }
-        if ($metodo === 'POST') {
+        if ($metodo === 'POST' && $id === null) {
             return turismo_usuario_crear($pdo, $cuerpo);
+        }
+        if ($metodo === 'PUT' && $id !== null) {
+            return turismo_usuario_actualizar($pdo, $id, $cuerpo);
+        }
+        if ($metodo === 'DELETE' && $id !== null) {
+            return turismo_usuario_eliminar($pdo, $id);
         }
         throw new ErrorHttp(405, 'Método no permitido');
     }
@@ -568,8 +570,8 @@ function turismo_coordenadas(array $cuerpo): array
 
 // ---------- usuarios de vehículos ----------
 
-/** POST /api/turismos/usuarios — botón "Crear usuario de vehículos". */
-function turismo_usuario_crear(PDO $pdo, array $cuerpo): array
+/** Valida los datos completos de un usuario de vehículos (alta o edición). */
+function turismo_usuario_validar(array $cuerpo, bool $es_alta): array
 {
     $nombre    = trim((string) ($cuerpo['nombre'] ?? ''));
     $email     = strtolower(trim((string) ($cuerpo['email'] ?? '')));
@@ -593,9 +595,40 @@ function turismo_usuario_crear(PDO $pdo, array $cuerpo): array
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $caduca)) {
         throw new ErrorHttp(422, 'Indica hasta cuándo es válido el permiso de conducir');
     }
-    if ($caduca < date('Y-m-d')) {
+    // Reason: en una edición se permite guardar con el permiso ya vencido
+    // (p. ej. corregir un teléfono); la solicitud de coche sigue bloqueada
+    // hasta que se actualice la fecha del permiso.
+    if ($es_alta && $caduca < date('Y-m-d')) {
         throw new ErrorHttp(422, 'Ese permiso de conducir ya está caducado');
     }
+    return [$nombre, $email, $dni, $telefono, $domicilio, $permiso, $clase, $caduca, $empleado];
+}
+
+/** Lista completa para el panel del admin (con si tiene coches sin devolver). */
+function turismos_usuarios_listar(PDO $pdo): array
+{
+    $filas = $pdo->query(
+        'SELECT t.usuario_id AS id, t.nombre, t.email, t.dni, t.telefono, t.domicilio,
+                t.permiso, t.clase_permiso, t.permiso_caduca, t.empleado, u.username,
+                (SELECT COUNT(*) FROM turismo_solicitud s
+                  WHERE s.usuario_id = t.usuario_id AND s.fecha_devolucion IS NULL) AS coches_en_uso
+         FROM turismo_usuario t
+         JOIN usuario u ON u.id = t.usuario_id
+         ORDER BY t.nombre'
+    )->fetchAll();
+    return array_map(function (array $f): array {
+        $f['id'] = (int) $f['id'];
+        $f['empleado'] = (bool) $f['empleado'];
+        $f['coches_en_uso'] = (int) $f['coches_en_uso'];
+        return $f;
+    }, $filas);
+}
+
+/** POST /api/turismos/usuarios — botón "Crear usuario de vehículos". */
+function turismo_usuario_crear(PDO $pdo, array $cuerpo): array
+{
+    [$nombre, $email, $dni, $telefono, $domicilio, $permiso, $clase, $caduca, $empleado] =
+        turismo_usuario_validar($cuerpo, true);
     $stmt = $pdo->prepare('SELECT id FROM turismo_usuario WHERE email = ?');
     $stmt->execute([$email]);
     if ($stmt->fetchColumn() !== false) {
@@ -628,6 +661,57 @@ function turismo_usuario_crear(PDO $pdo, array $cuerpo): array
 
     http_response_code(201);
     return ['username' => $candidato, 'password' => $password, 'nombre' => $nombre, 'email' => $email];
+}
+
+/** PUT /api/turismos/usuarios/{usuario_id} — editar los datos de la cuenta. */
+function turismo_usuario_actualizar(PDO $pdo, int $usuario_id, array $cuerpo): array
+{
+    $stmt = $pdo->prepare('SELECT id FROM turismo_usuario WHERE usuario_id = ?');
+    $stmt->execute([$usuario_id]);
+    if ($stmt->fetchColumn() === false) {
+        throw new ErrorHttp(404, 'Usuario de vehículos no encontrado');
+    }
+    [$nombre, $email, $dni, $telefono, $domicilio, $permiso, $clase, $caduca, $empleado] =
+        turismo_usuario_validar($cuerpo, false);
+    $stmt = $pdo->prepare('SELECT id FROM turismo_usuario WHERE email = ? AND usuario_id <> ?');
+    $stmt->execute([$email, $usuario_id]);
+    if ($stmt->fetchColumn() !== false) {
+        throw new ErrorHttp(409, 'Ya hay otro usuario de vehículos con ese email');
+    }
+    $pdo->prepare(
+        'UPDATE turismo_usuario SET nombre = ?, email = ?, dni = ?, telefono = ?,
+             domicilio = ?, permiso = ?, clase_permiso = ?, permiso_caduca = ?, empleado = ?
+         WHERE usuario_id = ?'
+    )->execute([$nombre, $email, $dni, $telefono, $domicilio, $permiso, $clase, $caduca, $empleado, $usuario_id]);
+
+    foreach (turismos_usuarios_listar($pdo) as $u) {
+        if ($u['id'] === $usuario_id) {
+            return $u;
+        }
+    }
+    throw new ErrorHttp(404, 'Usuario de vehículos no encontrado');
+}
+
+/** DELETE /api/turismos/usuarios/{usuario_id} — borrar cuenta de vehículos. */
+function turismo_usuario_eliminar(PDO $pdo, int $usuario_id): mixed
+{
+    $stmt = $pdo->prepare('SELECT nombre FROM turismo_usuario WHERE usuario_id = ?');
+    $stmt->execute([$usuario_id]);
+    if ($stmt->fetchColumn() === false) {
+        throw new ErrorHttp(404, 'Usuario de vehículos no encontrado');
+    }
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM turismo_solicitud WHERE usuario_id = ? AND fecha_devolucion IS NULL');
+    $stmt->execute([$usuario_id]);
+    if ((int) $stmt->fetchColumn() > 0) {
+        throw new ErrorHttp(409, 'Esta persona tiene un coche sin devolver: registra la devolución antes de borrar su cuenta');
+    }
+    // Reason: se borra la cuenta de acceso pero NO su historial de
+    // solicitudes, que debe conservarse para las auditorías (las solicitudes
+    // guardan copia de nombre, DNI, contrato y firma).
+    $pdo->prepare('DELETE FROM turismo_usuario WHERE usuario_id = ?')->execute([$usuario_id]);
+    $pdo->prepare("DELETE FROM usuario WHERE id = ? AND rol = 'vehiculos'")->execute([$usuario_id]);
+    http_response_code(204);
+    return null;
 }
 
 // ---------- contrato ----------

@@ -130,7 +130,9 @@ async function cargarTurismos() {
     );
     document.getElementById("turismos-acciones-admin").classList.remove("oculta");
     document.getElementById("turismos-registro").classList.remove("oculta");
+    document.getElementById("turismos-usuarios").classList.remove("oculta");
     pintarRegistroTurismos();
+    cargarUsuariosVehiculos();
   } else {
     misSolicitudes = solicitudes;
   }

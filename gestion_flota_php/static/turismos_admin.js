@@ -138,7 +138,51 @@ async function guardarVehiculo(evento) {
 
 // ---------- usuarios de vehículos ----------
 
+let datosUsuariosVehiculos = [];
+
+async function cargarUsuariosVehiculos() {
+  datosUsuariosVehiculos = await api("api/turismos/usuarios");
+  pintarUsuariosVehiculos();
+}
+
+function pintarUsuariosVehiculos() {
+  const cont = document.getElementById("lista-usuarios-vehiculos");
+  if (datosUsuariosVehiculos.length === 0) {
+    cont.innerHTML = '<div class="vacio">Todavía no hay usuarios de vehículos. Crea el primero con "➕ Crear usuario de vehículos".</div>';
+    return;
+  }
+  const hoy = new Date().toISOString().slice(0, 10);
+  cont.innerHTML = datosUsuariosVehiculos
+    .map((u) => {
+      const permisoCaducado = u.permiso_caduca && u.permiso_caduca < hoy;
+      return `
+      <div class="tarjeta">
+        <div class="item-cabecera">
+          <div>
+            <strong>👤 ${esc(u.nombre)}</strong>
+            <span class="badge ${u.empleado ? "libre" : "parado"}">${u.empleado ? "Empleado" : "Colaborador/tercero"}</span>
+            ${u.coches_en_uso > 0 ? '<span class="badge ocupado">🚗 Tiene un coche</span>' : ""}
+            ${permisoCaducado ? '<span class="badge vencido">⚠️ Permiso caducado</span>' : ""}
+          </div>
+          <div class="acciones" style="margin:0">
+            <button class="btn-chico" onclick='editarUsuarioVehiculos(${JSON.stringify(JSON.stringify(u))})'>✏️ Editar</button>
+            <button class="btn-chico btn-peligro" onclick="borrarUsuarioVehiculos(${u.id}, '${esc(u.nombre).replace(/'/g, "&#39;")}')">🗑 Borrar</button>
+          </div>
+        </div>
+        <p class="item-datos">
+          Usuario: <strong>${esc(u.username)}</strong> · DNI ${esc(u.dni || "—")} · ☎️ ${esc(u.telefono || "—")} · 📧 ${esc(u.email)}<br>
+          Domicilio: ${esc(u.domicilio || "—")} ·
+          Permiso ${esc(u.permiso || "—")} (clase ${esc(u.clase_permiso || "—")}, válido hasta ${fechaLegible(u.permiso_caduca)})
+        </p>
+      </div>`;
+    })
+    .join("");
+}
+
 function abrirUsuarioVehiculos() {
+  document.getElementById("uv-id").value = "";
+  document.getElementById("titulo-usuario-vehiculos").textContent = "👥 Crear usuario de vehículos";
+  document.getElementById("btn-uv-guardar").textContent = "Crear cuenta";
   ["uv-nombre", "uv-dni", "uv-telefono", "uv-email", "uv-domicilio", "uv-permiso", "uv-clase", "uv-caduca"].forEach(
     (id) => (document.getElementById(id).value = "")
   );
@@ -146,26 +190,55 @@ function abrirUsuarioVehiculos() {
   document.getElementById("modal-usuario-vehiculos").classList.remove("oculta");
 }
 
+function editarUsuarioVehiculos(json) {
+  const u = JSON.parse(json);
+  abrirUsuarioVehiculos();
+  document.getElementById("uv-id").value = u.id;
+  document.getElementById("titulo-usuario-vehiculos").textContent = `✏️ Editar a ${u.nombre}`;
+  document.getElementById("btn-uv-guardar").textContent = "Guardar cambios";
+  document.getElementById("uv-nombre").value = u.nombre;
+  document.getElementById("uv-dni").value = u.dni || "";
+  document.getElementById("uv-telefono").value = u.telefono || "";
+  document.getElementById("uv-email").value = u.email;
+  document.getElementById("uv-domicilio").value = u.domicilio || "";
+  document.getElementById("uv-permiso").value = u.permiso || "";
+  document.getElementById("uv-clase").value = u.clase_permiso || "";
+  document.getElementById("uv-caduca").value = u.permiso_caduca || "";
+  document.getElementById("uv-empleado").value = u.empleado ? "1" : "0";
+}
+
 async function crearUsuarioVehiculos(evento) {
   evento.preventDefault();
-  const cred = await api("api/turismos/usuarios", {
-    method: "POST",
-    body: JSON.stringify({
-      nombre: document.getElementById("uv-nombre").value.trim(),
-      dni: document.getElementById("uv-dni").value.trim(),
-      telefono: document.getElementById("uv-telefono").value.trim(),
-      email: document.getElementById("uv-email").value.trim(),
-      domicilio: document.getElementById("uv-domicilio").value.trim(),
-      permiso: document.getElementById("uv-permiso").value.trim(),
-      clase_permiso: document.getElementById("uv-clase").value.trim(),
-      permiso_caduca: document.getElementById("uv-caduca").value,
-      empleado: document.getElementById("uv-empleado").value === "1",
-    }),
-  });
-  cerrarModalTurismo("modal-usuario-vehiculos");
-  // Se reutiliza el modal de credenciales de las cuentas de chófer.
-  document.getElementById("cred-usuario").value = cred.username;
-  document.getElementById("cred-password").value = cred.password;
-  document.getElementById("modal-credenciales").classList.remove("oculta");
+  const id = document.getElementById("uv-id").value;
+  const datos = {
+    nombre: document.getElementById("uv-nombre").value.trim(),
+    dni: document.getElementById("uv-dni").value.trim(),
+    telefono: document.getElementById("uv-telefono").value.trim(),
+    email: document.getElementById("uv-email").value.trim(),
+    domicilio: document.getElementById("uv-domicilio").value.trim(),
+    permiso: document.getElementById("uv-permiso").value.trim(),
+    clase_permiso: document.getElementById("uv-clase").value.trim(),
+    permiso_caduca: document.getElementById("uv-caduca").value,
+    empleado: document.getElementById("uv-empleado").value === "1",
+  };
+  if (id) {
+    await api(`api/turismos/usuarios/${id}`, { method: "PUT", body: JSON.stringify(datos) });
+    cerrarModalTurismo("modal-usuario-vehiculos");
+    alert("✅ Datos actualizados. Sus próximos contratos saldrán con los datos nuevos.");
+  } else {
+    const cred = await api("api/turismos/usuarios", { method: "POST", body: JSON.stringify(datos) });
+    cerrarModalTurismo("modal-usuario-vehiculos");
+    // Se reutiliza el modal de credenciales de las cuentas de chófer.
+    document.getElementById("cred-usuario").value = cred.username;
+    document.getElementById("cred-password").value = cred.password;
+    document.getElementById("modal-credenciales").classList.remove("oculta");
+  }
+  cargarUsuariosVehiculos();
   return false;
+}
+
+async function borrarUsuarioVehiculos(id, nombre) {
+  if (!confirm(`¿Borrar la cuenta de vehículos de ${nombre}?\n\nSu historial de solicitudes firmadas se conserva para las auditorías.`)) return;
+  await api(`api/turismos/usuarios/${id}`, { method: "DELETE" });
+  cargarUsuariosVehiculos();
 }

@@ -148,6 +148,14 @@
   finalidad, km, carga, accesorios, daños). Verificado por API (contrato
   archivado con 0 placeholders personales) y Playwright móvil 390×844.
 
+- [x] **2026-07-16** — Turismos: lista de usuarios de vehículos para el
+  admin (sección "👥 Usuarios de vehículos"): ver todos con sus datos y
+  avisos (⚠️ permiso caducado, 🚗 tiene un coche), editar cualquier dato
+  reutilizando el mismo modal (los contratos siguientes salen con los
+  datos nuevos) y borrar cuentas (bloqueado si tiene un coche sin
+  devolver; el historial de solicitudes firmadas se conserva para las
+  auditorías). Verificado por API y Playwright.
+
 ## Discovered During Work
 
 - [ ] Recordatorios por WhatsApp además de email y panel web.

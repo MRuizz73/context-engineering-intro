@@ -210,6 +210,19 @@
       </p>
       <div id="lista-turismos" class="turismo-lista"></div>
 
+      <div id="turismos-usuarios" class="oculta">
+        <div class="barra">
+          <h3>👥 Usuarios de vehículos</h3>
+          <button class="btn-chico btn-primario" onclick="abrirUsuarioVehiculos()">➕ Crear usuario de vehículos</button>
+        </div>
+        <p class="ayuda">
+          Cuentas que solo pueden solicitar y devolver turismos. Puedes editar
+          sus datos (salen en el contrato) o borrar la cuenta; el historial de
+          solicitudes firmadas se conserva para las auditorías.
+        </p>
+        <div id="lista-usuarios-vehiculos"></div>
+      </div>
+
       <div id="turismos-registro" class="oculta">
         <div class="barra">
           <h3>📖 Registro de uso (auditoría)</h3>
@@ -389,7 +402,8 @@
   <!-- Modal: crear usuario de vehículos (solo responsable) -->
   <div id="modal-usuario-vehiculos" class="modal oculta">
     <form class="tarjeta modal-contenido" onsubmit="return crearUsuarioVehiculos(event)">
-      <h3>👥 Crear usuario de vehículos</h3>
+      <h3 id="titulo-usuario-vehiculos">👥 Crear usuario de vehículos</h3>
+      <input type="hidden" id="uv-id">
       <p class="ayuda">
         Esta cuenta SOLO puede solicitar y devolver turismos (no ve nada más).
         Con estos datos el contrato de cesión sale completo, sin huecos en
@@ -416,7 +430,7 @@
         </select>
       </label>
       <div class="acciones">
-        <button type="submit" class="btn-primario">Crear cuenta</button>
+        <button type="submit" class="btn-primario" id="btn-uv-guardar">Crear cuenta</button>
         <button type="button" onclick="cerrarModalTurismo('modal-usuario-vehiculos')">Cancelar</button>
       </div>
     </form>
@@ -451,7 +465,7 @@
   <script src="static/buscador.js?v=7"></script>
   <script src="static/app.js?v=7"></script>
   <script src="static/perfil.js?v=7"></script>
-  <script src="static/turismos.js?v=3"></script>
-  <script src="static/turismos_admin.js?v=3"></script>
+  <script src="static/turismos.js?v=4"></script>
+  <script src="static/turismos_admin.js?v=4"></script>
 </body>
 </html>
